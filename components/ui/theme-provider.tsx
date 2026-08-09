@@ -53,8 +53,8 @@ function applyToDOM(resolved: ResolvedTheme): void {
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  // Always start with "system" on SSR and initial hydration to prevent mismatch.
-  const [preference, setPreference] = useState<ThemePreference>("system");
+  // Always start with "light" on SSR and initial hydration to prevent mismatch.
+  const [preference, setPreference] = useState<ThemePreference>("light");
   const [mounted, setMounted] = useState(false);
 
   useLayoutEffect(() => {

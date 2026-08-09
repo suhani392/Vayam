@@ -45,7 +45,7 @@ export const THEME_LABELS: Record<ThemePreference, string> = {
  */
 export function parseThemePreference(raw: string | null): ThemePreference {
   if (raw === "light" || raw === "dark" || raw === "system") return raw;
-  return "system";
+  return "light";
 }
 
 // ---------------------------------------------------------------------------
@@ -67,4 +67,4 @@ export function parseThemePreference(raw: string | null): ThemePreference {
  *
  * Keep this script SMALL.  Every byte here blocks the parser.
  */
-export const THEME_SCRIPT = /* js */ `(function(){try{var s=localStorage.getItem("${THEME_STORAGE_KEY}");var d=s==="${THEME_DARK_VALUE}"||(s!=="light"&&window.matchMedia("(prefers-color-scheme: dark)").matches);if(d)document.documentElement.setAttribute("${THEME_ATTRIBUTE}","${THEME_DARK_VALUE}");}catch(e){}})();`;
+export const THEME_SCRIPT = /* js */ `(function(){try{var s=localStorage.getItem("${THEME_STORAGE_KEY}");var d=s==="${THEME_DARK_VALUE}"||(s==="system"&&window.matchMedia("(prefers-color-scheme: dark)").matches);if(d)document.documentElement.setAttribute("${THEME_ATTRIBUTE}","${THEME_DARK_VALUE}");}catch(e){}})();`;
