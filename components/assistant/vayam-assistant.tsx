@@ -14,7 +14,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils/cn";
 import { KnowledgeCard } from "@/components/knowledge/knowledge-card";
 import { processAssistantQuery, type AssistantResponse } from "@/lib/ai/orchestrator";
-import { TEST_PROFILES } from "@/lib/core/data/test-profiles";
+import { useUserProfile } from "@/hooks/useUserProfile";
 import { useLanguage } from "@/hooks/useLanguage";
 import { getSTTProvider, getTTSProvider, type VoiceState } from "@/lib/voice";
 import type { UserProfile } from "@/lib/core/types";
@@ -42,11 +42,14 @@ export interface VayamAssistantProps {
 }
 
 export function VayamAssistant({
-  initialProfile = TEST_PROFILES.profileB,
+  initialProfile = null,
   className,
   isFullPage = false,
 }: VayamAssistantProps) {
   const { lang, t } = useLanguage();
+
+  const { profile, loaded } = useUserProfile();
+  const defaultProfile = loaded && profile ? (profile as UserProfile) : null;
 
   const [messages, setMessages] = useState<
     { id: string; role: "user" | "assistant"; content: string; responseData?: AssistantResponse }[]
@@ -54,11 +57,17 @@ export function VayamAssistant({
   const [inputQuery, setInputQuery] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [toolStatus, setToolStatus] = useState<string | null>(null);
-  const [activeProfile, setActiveProfile] = useState<UserProfile | null>(initialProfile);
+  const [activeProfile, setActiveProfile] = useState<UserProfile | null>(defaultProfile);
+
+  useEffect(() => {
+    if (loaded && profile && !activeProfile) {
+      setActiveProfile(profile as UserProfile);
+    }
+  }, [loaded, profile, activeProfile]);
 
   // Voice state
   const [voiceState, setVoiceState] = useState<VoiceState>("IDLE");
-  const [voiceResponsesEnabled, setVoiceResponsesEnabled] = useState(false);
+  const [voiceResponsesEnabled, setVoiceResponsesEnabled] = useState(true);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -253,7 +262,11 @@ export function VayamAssistant({
               </button>
             ) : (
               <button
-                onClick={() => setActiveProfile(TEST_PROFILES.profileB)}
+                onClick={() => {
+                  if (loaded && profile) {
+                    setActiveProfile(profile as UserProfile);
+                  }
+                }}
                 className="badge badge-muted hover:badge-accent gap-1 cursor-pointer transition-all"
               >
                 {t("assistant.noProfile")}

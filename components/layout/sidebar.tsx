@@ -56,19 +56,18 @@ export function Sidebar({ className }: { className?: string }) {
       {/* ── Brand Header ── */}
       <div className="p-6 border-b border-border-subtle flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3 group focus:outline-none">
-          <div className="h-10 w-10 rounded-xl bg-accent text-accent-foreground flex items-center justify-center font-extrabold shadow-sm group-hover:scale-105 transition-transform">
-            <Sparkles size={20} />
-          </div>
+          <img
+            src="/assets/Vayam_Icon.png?v=2"
+            alt="Vayam Icon Logo"
+            className="h-10 w-auto object-contain transition-transform group-hover:scale-105"
+          />
           <div>
-            <div className="flex items-center gap-2">
-              <span className="text-h3 font-extrabold text-foreground tracking-tight">
-                {APP_CONFIG.name}
-              </span>
-              <span className="font-devanagari text-body-sm text-accent font-bold">
-                वयम्
-              </span>
-            </div>
-            <p className="text-[11px] text-muted-foreground font-medium truncate max-w-[170px]">
+            <img
+              src="/assets/Vayam_Text.png?v=2"
+              alt="Vayam"
+              className="h-6 w-auto object-contain"
+            />
+            <p className="text-[11px] text-muted-foreground font-medium truncate max-w-[170px] mt-0.5">
               {APP_CONFIG.tagline}
             </p>
           </div>

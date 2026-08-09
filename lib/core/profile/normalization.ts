@@ -2,16 +2,55 @@
  * lib/core/profile/normalization.ts
  *
  * Profile Normalization & Data Minimization Layer.
- * Sanitizes and normalizes raw user inputs (e.g. messy education strings, state names, income ranges)
- * into standardized internal formats.
+ * Sanitizes and normalizes raw user inputs into standardized internal formats.
  */
 
 import type { UserProfile, EducationLevel, ProfileLocation, SocialCategory } from "../types";
+
+export const ALL_INDIAN_STATES: Array<{ code: string; name: string }> = [
+  { code: "AP", name: "Andhra Pradesh" },
+  { code: "AR", name: "Arunachal Pradesh" },
+  { code: "AS", name: "Assam" },
+  { code: "BR", name: "Bihar" },
+  { code: "CG", name: "Chhattisgarh" },
+  { code: "GA", name: "Goa" },
+  { code: "GJ", name: "Gujarat" },
+  { code: "HR", name: "Haryana" },
+  { code: "HP", name: "Himachal Pradesh" },
+  { code: "JH", name: "Jharkhand" },
+  { code: "KA", name: "Karnataka" },
+  { code: "KL", name: "Kerala" },
+  { code: "MP", name: "Madhya Pradesh" },
+  { code: "MH", name: "Maharashtra" },
+  { code: "MN", name: "Manipur" },
+  { code: "ML", name: "Meghalaya" },
+  { code: "MZ", name: "Mizoram" },
+  { code: "NL", name: "Nagaland" },
+  { code: "OD", name: "Odisha" },
+  { code: "PB", name: "Punjab" },
+  { code: "RJ", name: "Rajasthan" },
+  { code: "SK", name: "Sikkim" },
+  { code: "TN", name: "Tamil Nadu" },
+  { code: "TS", name: "Telangana" },
+  { code: "TR", name: "Tripura" },
+  { code: "UP", name: "Uttar Pradesh" },
+  { code: "UK", name: "Uttarakhand" },
+  { code: "WB", name: "West Bengal" },
+  { code: "AN", name: "Andaman and Nicobar Islands" },
+  { code: "CH", name: "Chandigarh" },
+  { code: "DN", name: "Dadra and Nagar Haveli and Daman and Diu" },
+  { code: "DL", name: "Delhi" },
+  { code: "JK", name: "Jammu and Kashmir" },
+  { code: "LA", name: "Ladakh" },
+  { code: "LD", name: "Lakshadweep" },
+  { code: "PY", name: "Puducherry" },
+];
 
 /**
  * Maps raw education string inputs to canonical EducationLevel.
  */
 export function normalizeEducationLevel(input: string): EducationLevel {
+  if (!input) return "" as any;
   const normalized = input.trim().toLowerCase();
 
   if (/^(none|no|illiterate|uneducated|0|no_formal)/i.test(normalized)) {
@@ -48,29 +87,19 @@ export function normalizeEducationLevel(input: string): EducationLevel {
 /**
  * Normalizes Indian state names and codes to standardized ISO 3166-2:IN state codes.
  */
-export function normalizeStateCode(input: string): { stateCode: string; stateName: string } {
+export function normalizeStateCode(input?: string | null): { stateCode: string; stateName: string } {
+  if (!input || !input.trim()) {
+    return { stateCode: "", stateName: "" };
+  }
+
   const raw = input.trim().toUpperCase();
 
-  const stateMap: Record<string, { stateCode: string; stateName: string }> = {
-    MH: { stateCode: "MH", stateName: "Maharashtra" },
-    MAHARASHTRA: { stateCode: "MH", stateName: "Maharashtra" },
-    DL: { stateCode: "DL", stateName: "Delhi" },
-    DELHI: { stateCode: "DL", stateName: "Delhi" },
-    UP: { stateCode: "UP", stateName: "Uttar Pradesh" },
-    UTTARPRADESH: { stateCode: "UP", stateName: "Uttar Pradesh" },
-    KA: { stateCode: "KA", stateName: "Karnataka" },
-    KARNATAKA: { stateCode: "KA", stateName: "Karnataka" },
-    TN: { stateCode: "TN", stateName: "Tamil Nadu" },
-    TAMILNADU: { stateCode: "TN", stateName: "Tamil Nadu" },
-    GJ: { stateCode: "GJ", stateName: "Gujarat" },
-    GUJARAT: { stateCode: "GJ", stateName: "Gujarat" },
-    WB: { stateCode: "WB", stateName: "West Bengal" },
-    WESTBENGAL: { stateCode: "WB", stateName: "West Bengal" },
-  };
+  const found = ALL_INDIAN_STATES.find(
+    (s) => s.code === raw || s.name.toUpperCase() === raw || s.name.toUpperCase().replace(/\s+/g, "") === raw.replace(/\s+/g, "")
+  );
 
-  const key = raw.replace(/\s+/g, "");
-  if (stateMap[key]) {
-    return stateMap[key];
+  if (found) {
+    return { stateCode: found.code, stateName: found.name };
   }
 
   return { stateCode: raw.slice(0, 2), stateName: input };
@@ -94,7 +123,6 @@ export function normalizeCategory(input?: string): SocialCategory {
 
 /**
  * Data Minimization Inspector.
- * Distinguishes between REQUIRED, OPTIONAL, and NOT_COLLECTED fields on UserProfile.
  */
 export function inspectDataMinimization(profile: Partial<UserProfile>): {
   hasRequired: boolean;

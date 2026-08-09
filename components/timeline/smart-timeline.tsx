@@ -17,7 +17,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useLanguage } from "@/hooks/useLanguage";
 import { getSmartTimelineState } from "@/lib/timeline/events";
-import { TEST_PROFILES } from "@/lib/core/data/test-profiles";
+import { useUserProfile } from "@/hooks/useUserProfile";
 import type { UserProfile } from "@/lib/core/types";
 import type { LifeEvent } from "@/lib/timeline/types";
 import { KnowledgeCard } from "@/components/knowledge/knowledge-card";
@@ -35,44 +35,34 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 
-export function SmartTimeline({ initialProfile = TEST_PROFILES.profileA }: { initialProfile?: UserProfile }) {
+export function SmartTimeline({ initialProfile }: { initialProfile?: UserProfile }) {
   const { lang, t } = useLanguage();
-  const [selectedProfileKey, setSelectedProfileKey] = useState<keyof typeof TEST_PROFILES>("profileA");
   const [activeTab, setActiveTab] = useState<"now" | "next" | "later">("now");
+  const { profile, loaded } = useUserProfile();
 
-  const currentProfile = TEST_PROFILES[selectedProfileKey] || initialProfile;
-  const timelineState = getSmartTimelineState(currentProfile);
-  const hero = timelineState.heroEvent;
+  const currentProfile = loaded && profile ? (profile as UserProfile) : initialProfile;
+  const timelineState = currentProfile ? getSmartTimelineState(currentProfile) : null;
+  const hero = timelineState?.heroEvent;
+  const nowEvents = timelineState?.nowEvents ?? [];
+  const nextEvents = timelineState?.nextEvents ?? [];
+  const laterEvents = timelineState?.laterEvents ?? [];
 
   return (
     <div className="space-y-8">
 
-      {/* ── Test Profile Selector Bar ── */}
+      {/* ── Profile Context Banner ── */}
       <div className="p-4 rounded-2xl bg-surface-secondary/70 border border-border-subtle flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2 text-body-sm font-bold text-foreground">
           <User size={18} className="text-accent" />
           <span>Active Profile Context:</span>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          {(Object.keys(TEST_PROFILES) as (keyof typeof TEST_PROFILES)[]).map((key) => {
-            const p = TEST_PROFILES[key];
-            const isSelected = selectedProfileKey === key;
-            return (
-              <button
-                key={key}
-                onClick={() => setSelectedProfileKey(key)}
-                className={cn(
-                  "px-3 py-1.5 rounded-xl text-caption font-semibold transition-all cursor-pointer border",
-                  isSelected
-                    ? "bg-accent text-accent-foreground border-accent shadow-xs"
-                    : "bg-card text-muted-foreground border-border-subtle hover:bg-muted"
-                )}
-              >
-                {p.name} ({p.dateOfBirth.startsWith("2008") ? "Age 17" : p.dateOfBirth.startsWith("2007") ? "Age 18" : p.dateOfBirth.startsWith("1999") ? "Age 25" : "Age 65"})
-              </button>
-            );
-          })}
+        <div className="text-body-sm text-muted-foreground">
+          {currentProfile ? (
+            <span>{currentProfile.name} · {currentProfile.location.stateName || "Unknown state"}</span>
+          ) : (
+            <span>Complete your profile to view personalized timeline milestones.</span>
+          )}
         </div>
       </div>
 
@@ -140,7 +130,7 @@ export function SmartTimeline({ initialProfile = TEST_PROFILES.profileA }: { ini
                   : "bg-surface-secondary/70 text-muted-foreground border-transparent hover:text-foreground"
               )}
             >
-              NOW ({timelineState.nowEvents.length})
+              NOW ({nowEvents.length})
             </button>
             <button
               onClick={() => setActiveTab("next")}
@@ -151,7 +141,7 @@ export function SmartTimeline({ initialProfile = TEST_PROFILES.profileA }: { ini
                   : "bg-surface-secondary/70 text-muted-foreground border-transparent hover:text-foreground"
               )}
             >
-              NEXT ({timelineState.nextEvents.length})
+              NEXT ({nextEvents.length})
             </button>
             <button
               onClick={() => setActiveTab("later")}
@@ -162,12 +152,12 @@ export function SmartTimeline({ initialProfile = TEST_PROFILES.profileA }: { ini
                   : "bg-surface-secondary/70 text-muted-foreground border-transparent hover:text-foreground"
               )}
             >
-              LATER ({timelineState.laterEvents.length})
+              LATER ({laterEvents.length})
             </button>
           </div>
 
           <span className="text-caption text-muted-foreground font-semibold">
-            {currentProfile.name} ({currentProfile.dateOfBirth})
+            {currentProfile ? `${currentProfile.name} (${currentProfile.dateOfBirth})` : "No active profile"}
           </span>
         </div>
 
@@ -177,11 +167,11 @@ export function SmartTimeline({ initialProfile = TEST_PROFILES.profileA }: { ini
             <h3 className="text-h4 font-extrabold text-foreground flex items-center gap-2">
               <CheckCircle2 size={18} className="text-success" /> Requiring Attention Now
             </h3>
-            {timelineState.nowEvents.length === 0 ? (
+            {nowEvents.length === 0 ? (
               <p className="text-body-sm text-muted-foreground py-4">No active requirements at this moment.</p>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {timelineState.nowEvents.map((evt) => (
+                {nowEvents.map((evt) => (
                   <LifeEventCard key={evt.id} event={evt} />
                 ))}
               </div>
@@ -194,11 +184,11 @@ export function SmartTimeline({ initialProfile = TEST_PROFILES.profileA }: { ini
             <h3 className="text-h4 font-extrabold text-foreground flex items-center gap-2">
               <Clock size={18} className="text-accent" /> Upcoming Milestones
             </h3>
-            {timelineState.nextEvents.length === 0 ? (
+            {nextEvents.length === 0 ? (
               <p className="text-body-sm text-muted-foreground py-4">No upcoming milestones scheduled in the immediate future.</p>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {timelineState.nextEvents.map((evt) => (
+                {nextEvents.map((evt) => (
                   <LifeEventCard key={evt.id} event={evt} />
                 ))}
               </div>
@@ -211,11 +201,11 @@ export function SmartTimeline({ initialProfile = TEST_PROFILES.profileA }: { ini
             <h3 className="text-h4 font-extrabold text-foreground flex items-center gap-2">
               <Calendar size={18} className="text-muted-foreground" /> Future Life Stage Events
             </h3>
-            {timelineState.laterEvents.length === 0 ? (
+            {laterEvents.length === 0 ? (
               <p className="text-body-sm text-muted-foreground py-4">Future milestones will unlock as your life stage progresses.</p>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {timelineState.laterEvents.map((evt) => (
+                {laterEvents.map((evt) => (
                   <LifeEventCard key={evt.id} event={evt} />
                 ))}
               </div>

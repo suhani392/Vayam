@@ -24,8 +24,9 @@ import { CategoryBadge, SourceBadge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { SourceDetails } from "@/components/knowledge/source-details";
 import { KnowledgeCard } from "@/components/knowledge/knowledge-card";
+import { useUserProfile } from "@/hooks/useUserProfile";
 import { getKnowledgeDetails } from "@/lib/knowledge/search";
-import { TEST_PROFILES } from "@/lib/core/data/test-profiles";
+import type { UserProfile } from "@/lib/core/types";
 import {
   ArrowLeft,
   Sparkles,
@@ -43,9 +44,9 @@ import {
 
 export default function KnowledgeDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-
-  // Use Profile B as default profile context for personalized evaluations
-  const detail = getKnowledgeDetails(id, TEST_PROFILES.profileB);
+  const { profile, loaded } = useUserProfile();
+  const activeProfile = loaded && profile ? (profile as UserProfile) : null;
+  const detail = getKnowledgeDetails(id, activeProfile);
 
   if (!detail) {
     notFound();

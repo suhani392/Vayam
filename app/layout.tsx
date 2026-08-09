@@ -6,17 +6,8 @@ import { ThemeProvider } from "@/components/ui/theme-provider";
 import { AppShell } from "@/components/layout/app-shell";
 import { THEME_SCRIPT } from "@/lib/theme";
 import { LanguageProvider } from "@/lib/i18n/language-context";
-
-/* --------------------------------------------------------------------------
-   Vayam Font System
-   - Plus Jakarta Sans: Primary humanist/geometric Latin font (warm, rounded, modern)
-   - Noto Sans Devanagari: High-fidelity Hindi & Marathi Devanagari script support
-   - Geist Mono: Monospaced numeric & code text
-
-   Local Font Architecture:
-   If font files exist in /public/fonts/, the @font-face rules in globals.css
-   will automatically take precedence over Google fonts.
-   -------------------------------------------------------------------------- */
+import { AuthProvider } from "@/components/auth/AuthContext";
+import { AuthModal } from "@/components/auth/auth-modal";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-vayam-sans",
@@ -41,15 +32,20 @@ const geistMono = Geist_Mono({
   preload: false,
 });
 
-/* --------------------------------------------------------------------------
-   Metadata
-   -------------------------------------------------------------------------- */
 export const metadata: Metadata = {
   title: {
     default: APP_CONFIG.name,
     template: `%s — ${APP_CONFIG.name}`,
   },
   description: APP_CONFIG.description,
+  icons: {
+    icon: [
+      { url: "/assets/Vayam_Tab_Logo.png?v=3", type: "image/png" },
+      { url: "/favicon.ico", sizes: "any" },
+    ],
+    shortcut: "/assets/Vayam_Tab_Logo.png?v=3",
+    apple: "/assets/Vayam_Tab_Logo.png?v=3",
+  },
   keywords: [
     "government schemes India",
     "civic intelligence",
@@ -73,9 +69,6 @@ export const metadata: Metadata = {
   },
 };
 
-/* --------------------------------------------------------------------------
-   Root Layout
-   -------------------------------------------------------------------------- */
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
@@ -85,8 +78,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${plusJakartaSans.variable} ${notoSansDevanagari.variable} ${geistMono.variable} h-full`}
     >
       <head>
-        {/* Synchronous anti-flash script */}
-        {/* eslint-disable-next-line react/no-danger */}
+        <link rel="icon" href="/assets/Vayam_Tab_Logo.png?v=3" type="image/png" />
+        <link rel="shortcut icon" href="/assets/Vayam_Tab_Logo.png?v=3" type="image/png" />
+        <link rel="apple-touch-icon" href="/assets/Vayam_Tab_Logo.png?v=3" />
         <script
           suppressHydrationWarning
           dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }}
@@ -101,7 +95,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         </a>
         <ThemeProvider>
           <LanguageProvider>
-            <AppShell>{children}</AppShell>
+            <AuthProvider>
+              <AppShell>{children}</AppShell>
+              <AuthModal />
+            </AuthProvider>
           </LanguageProvider>
         </ThemeProvider>
       </body>

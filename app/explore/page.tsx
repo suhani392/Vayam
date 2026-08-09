@@ -18,7 +18,7 @@ import { PageHeader } from "@/components/layout/navigation";
 import { KnowledgeCard } from "@/components/knowledge/knowledge-card";
 import { Card, CardContent } from "@/components/ui/card";
 import { searchKnowledgeRecords, getPersonalizedKnowledge } from "@/lib/knowledge/search";
-import { TEST_PROFILES } from "@/lib/core/data/test-profiles";
+import { isProfileValid } from "@/lib/core/user-profile";
 import type { UserProfile } from "@/lib/core/types";
 import {
   Search,
@@ -58,6 +58,7 @@ const TYPES = [
 ];
 
 import { useLanguage } from "@/hooks/useLanguage";
+import { useUserProfile } from "@/hooks/useUserProfile";
 
 export default function ExplorePage() {
   const { t } = useLanguage();
@@ -67,10 +68,9 @@ export default function ExplorePage() {
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [sortBy, setSortBy] = useState<"recommended" | "title">("recommended");
 
-  // Profile toggle simulation (Profile B default, option to toggle off profile)
-  const [activeProfile, setActiveProfile] = useState<UserProfile | null>(TEST_PROFILES.profileB);
+  const { profile, loaded } = useUserProfile();
+  const activeProfile = loaded && profile && isProfileValid(profile) ? (profile as UserProfile) : null;
 
-  // Personalized Records via Phase 5 Core
   const personalizedItems = useMemo(() => {
     if (!activeProfile) return [];
     return getPersonalizedKnowledge(activeProfile);
@@ -116,41 +116,29 @@ export default function ExplorePage() {
         description="Find services, opportunities, benefits and rights that matter to you."
       />
 
-      {/* ── Profile Context Switcher Banner ── */}
-      <div className="mb-6 p-4 rounded-2xl border border-border-subtle bg-surface-secondary/60 flex flex-wrap items-center justify-between gap-4">
+      {/* ── Personalization Status Banner ── */}
+      <div className="mb-6 p-4 rounded-2xl border border-border-subtle bg-surface-secondary/60 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-accent/15 text-accent flex items-center justify-center font-bold">
             <User size={18} />
           </div>
           <div>
             <span className="text-caption font-bold text-muted-foreground uppercase tracking-wider block">
-              Active Personalization Context:
+              Personalization Status
             </span>
             <p className="text-body-sm font-semibold text-foreground">
-              {activeProfile
-                ? `${activeProfile.name} (Age 18 · Student · Maharashtra)`
-                : "Exploring without profile personalization"}
+              {activeProfile && activeProfile.name
+                ? `${activeProfile.name} · ${activeProfile.location.stateName || "Unknown State"}`
+                : "Browsing without profile personalization"}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          {activeProfile ? (
-            <button
-              onClick={() => setActiveProfile(null)}
-              className="btn btn-outline btn-xs gap-1 font-semibold"
-            >
-              Browse Without Personalization
-            </button>
-          ) : (
-            <button
-              onClick={() => setActiveProfile(TEST_PROFILES.profileB)}
-              className="btn btn-primary btn-xs gap-1 font-semibold"
-            >
-              <Sparkles size={12} /> Enable Profile Personalization
-            </button>
-          )}
-        </div>
+        {!activeProfile && (
+          <div className="text-right text-body-sm text-muted-foreground">
+            Complete your profile on the Profile page to enable tailored recommendations and state-specific filters.
+          </div>
+        )}
       </div>
 
       {/* ── Large Search & Filter Bar ── */}

@@ -18,7 +18,8 @@ import {
   type CivicNotification,
   type ReminderPreferences,
 } from "@/lib/notifications";
-import { TEST_PROFILES } from "@/lib/core/data/test-profiles";
+import { useUserProfile } from "@/hooks/useUserProfile";
+import type { UserProfile } from "@/lib/core/types";
 import { Dropdown } from "@/components/ui/dropdown";
 import {
   Bell,
@@ -37,10 +38,12 @@ export function NotificationCenter() {
   const [prefs, setPrefs] = useState<ReminderPreferences>({ enabled: true, mode: "important_only" });
   const [showSettings, setShowSettings] = useState(false);
 
+  const { profile, loaded } = useUserProfile();
+
   useEffect(() => {
     const activePrefs = getReminderPreferences();
     setPrefs(activePrefs);
-    const notifs = generateCivicNotifications(TEST_PROFILES.profileB, lang);
+    const notifs = generateCivicNotifications(loaded && profile ? (profile as UserProfile) : null, lang);
 
     // Filter by preference
     const filtered = notifs.filter((n) => {
@@ -50,7 +53,7 @@ export function NotificationCenter() {
     });
 
     setNotifications(filtered);
-  }, [lang]);
+  }, [lang, loaded, profile]);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
