@@ -1,0 +1,843 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   VAYAM DESIGN SYSTEM — Phase 02 (Refined Visual Identity)
+   ==========================================================================
+   Primary visual direction: Premium Indian civic-tech product.
+   Paper-like warmth, spacious typography, restrained multi-accent colors,
+   subtle Indian motifs, and local font architecture.
+   ========================================================================== */
+
+
+/* --------------------------------------------------------------------------
+   LOCAL FONT DEFINITIONS (@font-face)
+   If custom font files are added to /public/fonts/, the browser picks them
+   up automatically.
+   -------------------------------------------------------------------------- */
+@font-face {
+  font-family: 'Vayam Local Font';
+  src: url('/fonts/VayamFont-Regular.woff2') format('woff2'),
+       url('/fonts/VayamFont-Regular.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Vayam Local Font';
+  src: url('/fonts/VayamFont-Medium.woff2') format('woff2'),
+       url('/fonts/VayamFont-Medium.woff') format('woff');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Vayam Local Font';
+  src: url('/fonts/VayamFont-SemiBold.woff2') format('woff2'),
+       url('/fonts/VayamFont-SemiBold.woff') format('woff');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Vayam Local Font';
+  src: url('/fonts/VayamFont-Bold.woff2') format('woff2'),
+       url('/fonts/VayamFont-Bold.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Vayam Local Font';
+  src: url('/fonts/VayamFont-ExtraBold.woff2') format('woff2'),
+       url('/fonts/VayamFont-ExtraBold.woff') format('woff');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Local Devanagari Font (Hindi & Marathi) */
+@font-face {
+  font-family: 'Vayam Local Devanagari';
+  src: url('/fonts/VayamDevanagari-Regular.woff2') format('woff2'),
+       url('/fonts/VayamDevanagari-Regular.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Vayam Local Devanagari';
+  src: url('/fonts/VayamDevanagari-Bold.woff2') format('woff2'),
+       url('/fonts/VayamDevanagari-Bold.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+
+/* --------------------------------------------------------------------------
+   LIGHT THEME — Warm Paper Identity
+   -------------------------------------------------------------------------- */
+:root {
+  /* ── Backgrounds & Paper Surfaces ───────────────────────────────────────── */
+  --background:        hsl(38 25% 97.5%);   /* Soft warm paper-like canvas     */
+  --card:              hsl(0 0% 100%);      /* Pure warm white card paper      */
+  --surface-secondary: hsl(38 20% 94.5%);   /* Warm soft surface for panels    */
+  --surface-elevated:  hsl(0 0% 100%);     /* Floating dialogs / popovers     */
+  --popover:           hsl(0 0% 100%);
+  --popover-foreground: hsl(220 20% 14%);
+
+  /* ── Text Hierarchy ────────────────────────────────────────────────────── */
+  --foreground:         hsl(220 20% 13%);   /* Deep slate near-black text      */
+  --card-foreground:    hsl(220 20% 13%);
+  --muted:              hsl(38 18% 92%);    /* Muted chip/tag backgrounds      */
+  --muted-foreground:   hsl(220 10% 48%);   /* Supporting description text     */
+
+  /* ── Borders & Lines ───────────────────────────────────────────────────── */
+  --border:        hsl(38 15% 88%);        /* 1px low contrast warm border    */
+  --border-subtle: hsl(38 15% 93%);        /* 1px ultra-subtle warm divider   */
+  --input:         hsl(38 15% 86%);
+
+  /* ── Brand & Multi-Accent System ───────────────────────────────────────── */
+  /* Primary Accent: Saffron / Warm Orange (Indian civic warmth)              */
+  --accent:            hsl(24 92% 54%);
+  --accent-foreground: hsl(0 0% 100%);
+  --accent-subtle:     hsl(24 90% 96%);
+
+  /* Secondary Brand: Deep Indigo (Trust, stability)                          */
+  --primary:            hsl(234 52% 38%);
+  --primary-foreground: hsl(0 0% 99%);
+  --primary-subtle:     hsl(234 55% 96%);
+
+  /* Supporting Accents for Categories & Status                               */
+  --accent-saffron:        hsl(24 92% 54%);
+  --accent-saffron-subtle: hsl(24 90% 96%);
+
+  --accent-green:          hsl(152 55% 37%);
+  --accent-green-subtle:   hsl(152 50% 95%);
+
+  --accent-blue:           hsl(212 72% 42%);
+  --accent-blue-subtle:    hsl(212 70% 96%);
+
+  --accent-purple:         hsl(265 60% 48%);
+  --accent-purple-subtle:  hsl(265 55% 96%);
+
+  /* Secondary Neutral */
+  --secondary:            hsl(38 18% 92%);
+  --secondary-foreground: hsl(220 15% 25%);
+
+  /* ── Category Identity Pastel Colors (Subtle & Soft) ───────────────────── */
+  --category-education-bg:     hsl(150 50% 96%);
+  --category-education-text:   hsl(152 55% 30%);
+  --category-education-border: hsl(150 40% 88%);
+
+  --category-scholarship-bg:     hsl(38 90% 95.5%);
+  --category-scholarship-text:   hsl(30 88% 36%);
+  --category-scholarship-border: hsl(38 75% 87%);
+
+  --category-scheme-bg:     hsl(210 75% 96%);
+  --category-scheme-text:   hsl(212 72% 36%);
+  --category-scheme-border: hsl(210 65% 88%);
+
+  --category-service-bg:     hsl(265 65% 96%);
+  --category-service-text:   hsl(265 55% 40%);
+  --category-service-border: hsl(265 50% 88%);
+
+  /* ── Status Tokens ─────────────────────────────────────────────────────── */
+  --success:            hsl(152 55% 37%);
+  --success-foreground: hsl(0 0% 99%);
+  --success-subtle:     hsl(152 50% 95%);
+
+  --warning:            hsl(38 92% 48%);
+  --warning-foreground: hsl(38 70% 12%);
+  --warning-subtle:     hsl(38 92% 96%);
+
+  --destructive:            hsl(4 76% 46%);
+  --destructive-foreground: hsl(0 0% 99%);
+  --destructive-subtle:     hsl(4 76% 96%);
+
+  --info:            hsl(212 72% 42%);
+  --info-foreground: hsl(0 0% 99%);
+  --info-subtle:     hsl(212 70% 96%);
+
+  /* ── Civic Eligibility Tokens ──────────────────────────────────────────── */
+  --eligible:        hsl(152 55% 37%);
+  --eligible-subtle: hsl(152 50% 95%);
+  --maybe:           hsl(38 92% 48%);
+  --maybe-subtle:    hsl(38 92% 96%);
+  --ineligible:        hsl(4 76% 46%);
+  --ineligible-subtle: hsl(4 76% 96%);
+
+  /* ── Source Provenance Tokens ──────────────────────────────────────────── */
+  --official:        hsl(212 72% 42%);
+  --official-subtle: hsl(212 70% 96%);
+  --verified:        hsl(152 55% 37%);
+  --verified-subtle: hsl(152 50% 95%);
+
+  /* ── Focus ─────────────────────────────────────────────────────────────── */
+  --ring:        hsl(24 92% 54%);
+  --ring-offset: hsl(38 25% 97.5%);
+
+  /* ── Restrained Elevation (Light mode relies mostly on surface & border) ── */
+  --shadow-sm:         0 1px 2px rgba(28, 32, 50, 0.04);
+  --shadow-md:         0 4px 12px rgba(28, 32, 50, 0.06), 0 1px 3px rgba(28, 32, 50, 0.03);
+  --shadow-lg:         0 10px 25px rgba(28, 32, 50, 0.08), 0 4px 8px rgba(28, 32, 50, 0.04);
+  --shadow-xl:         0 18px 45px rgba(28, 32, 50, 0.12), 0 6px 16px rgba(28, 32, 50, 0.06);
+  --shadow-card:       0 1px 3px rgba(28, 32, 50, 0.04), 0 1px 2px rgba(28, 32, 50, 0.02);
+  --shadow-card-hover: 0 6px 20px rgba(28, 32, 50, 0.08), 0 2px 6px rgba(28, 32, 50, 0.04);
+
+  /* ── Subtle Indian Line Art Motif (4-5% opacity, elegant geometry) ─────── */
+  --motif-pattern: url("data:image/svg+xml,%3Csvg width='36' height='36' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M18 2 L34 18 L18 34 L2 18 Z' fill='none' stroke='hsl(24,92%25,54%25)' stroke-width='0.5' opacity='0.045'/%3E%3Ccircle cx='18' cy='18' r='3' fill='none' stroke='hsl(234,52%25,38%25)' stroke-width='0.5' opacity='0.04'/%3E%3C/svg%3E");
+}
+
+
+/* --------------------------------------------------------------------------
+   DARK THEME  [data-theme="dark"]
+   Deep warm slate background, restrained borders, soft warm undertones.
+   -------------------------------------------------------------------------- */
+[data-theme="dark"] {
+  --background:        hsl(222 16% 9.5%);
+  --card:              hsl(222 14% 13.5%);
+  --surface-secondary: hsl(222 15% 11.5%);
+  --surface-elevated:  hsl(222 12% 17.5%);
+  --popover:           hsl(222 14% 15%);
+  --popover-foreground: hsl(38 15% 92%);
+
+  --foreground:       hsl(38 15% 92%);      /* Warm soft white text           */
+  --card-foreground:  hsl(38 15% 92%);
+  --muted:            hsl(222 12% 17%);
+  --muted-foreground: hsl(222 8% 60%);
+
+  --border:        hsl(222 12% 20%);
+  --border-subtle: hsl(222 12% 16%);
+  --input:         hsl(222 12% 20%);
+
+  --accent:            hsl(24 92% 60%);
+  --accent-foreground: hsl(222 16% 9.5%);
+  --accent-subtle:     hsl(24 90% 14%);
+
+  --primary:            hsl(234 65% 68%);
+  --primary-foreground: hsl(222 16% 9.5%);
+  --primary-subtle:     hsl(234 52% 14%);
+
+  --accent-saffron:        hsl(24 92% 60%);
+  --accent-saffron-subtle: hsl(24 90% 14%);
+
+  --accent-green:          hsl(152 50% 48%);
+  --accent-green-subtle:   hsl(152 50% 11%);
+
+  --accent-blue:           hsl(212 70% 62%);
+  --accent-blue-subtle:    hsl(212 65% 12%);
+
+  --accent-purple:         hsl(265 65% 68%);
+  --accent-purple-subtle:  hsl(265 55% 13%);
+
+  --secondary:            hsl(222 12% 17%);
+  --secondary-foreground: hsl(222 8% 75%);
+
+  /* Category pastels adapted for dark theme */
+  --category-education-bg:     hsl(152 40% 12%);
+  --category-education-text:   hsl(152 50% 65%);
+  --category-education-border: hsl(152 35% 20%);
+
+  --category-scholarship-bg:     hsl(32 40% 12%);
+  --category-scholarship-text:   hsl(32 80% 68%);
+  --category-scholarship-border: hsl(32 35% 20%);
+
+  --category-scheme-bg:     hsl(212 40% 13%);
+  --category-scheme-text:   hsl(212 70% 70%);
+  --category-scheme-border: hsl(212 35% 22%);
+
+  --category-service-bg:     hsl(265 40% 14%);
+  --category-service-text:   hsl(265 65% 72%);
+  --category-service-border: hsl(265 35% 24%);
+
+  --success:            hsl(152 50% 48%);
+  --success-foreground: hsl(222 16% 9.5%);
+  --success-subtle:     hsl(152 50% 11%);
+
+  --warning:            hsl(38 90% 58%);
+  --warning-foreground: hsl(222 16% 9.5%);
+  --warning-subtle:     hsl(38 90% 11%);
+
+  --destructive:            hsl(4 75% 60%);
+  --destructive-foreground: hsl(222 16% 9.5%);
+  --destructive-subtle:     hsl(4 75% 11%);
+
+  --info:            hsl(212 70% 62%);
+  --info-foreground: hsl(222 16% 9.5%);
+  --info-subtle:     hsl(212 65% 12%);
+
+  --eligible:        hsl(152 50% 48%);
+  --eligible-subtle: hsl(152 50% 11%);
+  --maybe:           hsl(38 90% 58%);
+  --maybe-subtle:    hsl(38 90% 11%);
+  --ineligible:        hsl(4 75% 60%);
+  --ineligible-subtle: hsl(4 75% 11%);
+
+  --official:        hsl(212 70% 62%);
+  --official-subtle: hsl(212 65% 12%);
+  --verified:        hsl(152 50% 48%);
+  --verified-subtle: hsl(152 50% 11%);
+
+  --ring:        hsl(24 92% 60%);
+  --ring-offset: hsl(222 16% 9.5%);
+
+  --shadow-sm:         0 1px 2px rgba(0, 0, 0, 0.20);
+  --shadow-md:         0 4px 12px rgba(0, 0, 0, 0.35);
+  --shadow-lg:         0 10px 30px rgba(0, 0, 0, 0.50);
+  --shadow-xl:         0 20px 50px rgba(0, 0, 0, 0.60);
+  --shadow-card:       0 1px 3px rgba(0, 0, 0, 0.25);
+  --shadow-card-hover: 0 4px 16px rgba(0, 0, 0, 0.40);
+
+  --motif-pattern: url("data:image/svg+xml,%3Csvg width='36' height='36' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M18 2 L34 18 L18 34 L2 18 Z' fill='none' stroke='hsl(24,92%25,60%25)' stroke-width='0.5' opacity='0.05'/%3E%3Ccircle cx='18' cy='18' r='3' fill='none' stroke='hsl(234,65%25,68%25)' stroke-width='0.5' opacity='0.04'/%3E%3C/svg%3E");
+}
+
+
+/* --------------------------------------------------------------------------
+   TAILWIND v4 THEME MAPPING
+   -------------------------------------------------------------------------- */
+@theme inline {
+  /* Surfaces */
+  --color-background:         var(--background);
+  --color-foreground:         var(--foreground);
+  --color-card:               var(--card);
+  --color-card-foreground:    var(--card-foreground);
+  --color-surface-secondary:  var(--surface-secondary);
+  --color-surface-elevated:   var(--surface-elevated);
+  --color-popover:            var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  /* Text & Borders */
+  --color-muted:              var(--muted);
+  --color-muted-foreground:   var(--muted-foreground);
+  --color-border:             var(--border);
+  --color-border-subtle:      var(--border-subtle);
+  --color-input:              var(--input);
+
+  /* Brand & Multi-Accents */
+  --color-primary:            var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-subtle:     var(--primary-subtle);
+  --color-accent:             var(--accent);
+  --color-accent-foreground:  var(--accent-foreground);
+  --color-accent-subtle:      var(--accent-subtle);
+
+  --color-accent-saffron:        var(--accent-saffron);
+  --color-accent-saffron-subtle: var(--accent-saffron-subtle);
+  --color-accent-green:          var(--accent-green);
+  --color-accent-green-subtle:   var(--accent-green-subtle);
+  --color-accent-blue:           var(--accent-blue);
+  --color-accent-blue-subtle:    var(--accent-blue-subtle);
+  --color-accent-purple:         var(--accent-purple);
+  --color-accent-purple-subtle:  var(--accent-purple-subtle);
+
+  /* Category pastels */
+  --color-category-education-bg:     var(--category-education-bg);
+  --color-category-education-text:   var(--category-education-text);
+  --color-category-education-border: var(--category-education-border);
+  --color-category-scholarship-bg:     var(--category-scholarship-bg);
+  --color-category-scholarship-text:   var(--category-scholarship-text);
+  --color-category-scholarship-border: var(--category-scholarship-border);
+  --color-category-scheme-bg:     var(--category-scheme-bg);
+  --color-category-scheme-text:   var(--category-scheme-text);
+  --color-category-scheme-border: var(--category-scheme-border);
+  --color-category-service-bg:     var(--category-service-bg);
+  --color-category-service-text:   var(--category-service-text);
+  --color-category-service-border: var(--category-service-border);
+
+  /* Status & Civic */
+  --color-success:            var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-success-subtle:     var(--success-subtle);
+  --color-warning:            var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-warning-subtle:     var(--warning-subtle);
+  --color-destructive:            var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-destructive-subtle:     var(--destructive-subtle);
+  --color-info:               var(--info);
+  --color-info-foreground:    var(--info-foreground);
+  --color-info-subtle:        var(--info-subtle);
+
+  --color-eligible:          var(--eligible);
+  --color-eligible-subtle:   var(--eligible-subtle);
+  --color-maybe:             var(--maybe);
+  --color-maybe-subtle:      var(--maybe-subtle);
+  --color-ineligible:        var(--ineligible);
+  --color-ineligible-subtle: var(--ineligible-subtle);
+  --color-official:          var(--official);
+  --color-official-subtle:   var(--official-subtle);
+  --color-verified:          var(--verified);
+  --color-verified-subtle:   var(--verified-subtle);
+
+  --color-ring: var(--ring);
+
+  /* Typography Fallback Chains */
+  --font-sans:        'Vayam Local Font', var(--font-vayam-sans), 'Plus Jakarta Sans', var(--font-vayam-devanagari), 'Noto Sans Devanagari', ui-sans-serif, system-ui, sans-serif;
+  --font-vayam:       'Vayam Local Font', var(--font-vayam-sans), 'Plus Jakarta Sans', var(--font-vayam-devanagari), 'Noto Sans Devanagari', ui-sans-serif, system-ui, sans-serif;
+  --font-devanagari:  'Vayam Local Devanagari', var(--font-vayam-devanagari), 'Noto Sans Devanagari', 'Vayam Local Font', var(--font-vayam-sans), ui-sans-serif, sans-serif;
+  --font-mono:        var(--font-vayam-mono), ui-monospace, monospace;
+}
+
+@theme {
+  --radius-sm:   0.375rem;   /* 6px  */
+  --radius-md:   0.625rem;   /* 10px */
+  --radius-lg:   0.875rem;   /* 14px */
+  --radius-xl:   1rem;       /* 16px */
+  --radius-2xl:  1.5rem;     /* 24px */
+  --radius-full: 9999px;
+}
+
+
+/* --------------------------------------------------------------------------
+   BASE STYLES
+   -------------------------------------------------------------------------- */
+*, *::before, *::after {
+  box-sizing: border-box;
+  border-color: var(--border);
+}
+
+html {
+  scroll-behavior: smooth;
+  height: 100%;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-vayam), var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.65;
+  min-height: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+}
+
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  border-radius: 0.25rem;
+}
+
+::-webkit-scrollbar              { width: 5px; height: 5px; }
+::-webkit-scrollbar-track        { background: transparent; }
+::-webkit-scrollbar-thumb        { background: var(--border); border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover  { background: var(--muted-foreground); }
+
+::selection {
+  background-color: var(--accent-subtle);
+  color: var(--accent);
+}
+
+.skip-to-content {
+  position: absolute;
+  left: -9999px;
+  top: 1rem;
+  z-index: 9999;
+  padding: 0.5rem 1rem;
+  background: var(--accent);
+  color: var(--accent-foreground);
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-decoration: none;
+}
+.skip-to-content:focus { left: 1rem; }
+
+
+/* --------------------------------------------------------------------------
+   DISTINCTIVE TYPOGRAPHY HIERARCHY
+   -------------------------------------------------------------------------- */
+@layer utilities {
+  /* Warm Greeting Title — e.g. "Namaste, Suhani 👋" */
+  .text-greeting {
+    font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+    line-height: 1.2;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  /* Large Numerical Callouts — e.g. "37 days", "₹6,000 / yr" */
+  .text-metric {
+    font-size: clamp(2.25rem, 4.5vw, 3.5rem);
+    line-height: 1.05;
+    font-weight: 800;
+    letter-spacing: -0.035em;
+  }
+
+  /* Display — Hero headlines */
+  .text-display {
+    font-size: clamp(2.25rem, 5vw, 3.75rem);
+    line-height: 1.1;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+  }
+
+  /* H1 — Primary page title */
+  .text-h1 {
+    font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+    line-height: 1.15;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+  }
+
+  /* H2 — Section title */
+  .text-h2 {
+    font-size: clamp(1.375rem, 2.5vw, 1.875rem);
+    line-height: 1.2;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  /* H3 — Card header / Group title */
+  .text-h3 {
+    font-size: clamp(1.125rem, 2vw, 1.375rem);
+    line-height: 1.3;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+  }
+
+  /* H4 — Minor heading */
+  .text-h4 {
+    font-size: 1rem;
+    line-height: 1.35;
+    font-weight: 600;
+  }
+
+  /* Body large */
+  .text-body-lg {
+    font-size: 1.125rem;
+    line-height: 1.7;
+    font-weight: 400;
+  }
+
+  /* Body standard */
+  .text-body {
+    font-size: 1rem;
+    line-height: 1.65;
+    font-weight: 400;
+  }
+
+  /* Body small */
+  .text-body-sm {
+    font-size: 0.875rem;
+    line-height: 1.6;
+    font-weight: 400;
+  }
+
+  /* Navigation Item */
+  .text-nav {
+    font-size: 0.9375rem;
+    line-height: 1.4;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+  }
+
+  /* Button text */
+  .text-button {
+    font-size: 0.9375rem;
+    line-height: 1;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+
+  /* Form / Table Label */
+  .text-label {
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+
+  /* Caption / Metadata */
+  .text-caption {
+    font-size: 0.75rem;
+    line-height: 1.5;
+    font-weight: 400;
+  }
+
+  /* Hindi & Marathi Devanagari typography override */
+  .font-devanagari {
+    font-family: var(--font-devanagari);
+    line-height: 1.85;
+  }
+}
+
+
+/* --------------------------------------------------------------------------
+   COMPONENT TOKEN STYLES
+   -------------------------------------------------------------------------- */
+@layer utilities {
+
+  /* ── Paper Card Variants ────────────────────────────────────────────────── */
+  .card-base {
+    background-color: var(--card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-xl);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-card);
+  }
+
+  .card-interactive {
+    background-color: var(--card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-xl);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-card);
+    cursor: pointer;
+    transition:
+      box-shadow 200ms cubic-bezier(0.4, 0, 0.2, 1),
+      border-color 200ms cubic-bezier(0.4, 0, 0.2, 1),
+      transform 150ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .card-interactive:hover {
+    border-color: var(--border);
+    box-shadow: var(--shadow-card-hover);
+    transform: translateY(-2px);
+  }
+
+  /* Milestone / Featured Highlight Card */
+  .card-milestone {
+    background-color: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+  }
+  .card-milestone::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent-saffron), var(--accent-purple));
+  }
+
+  /* Category Pastel Card Utilities */
+  .card-category-education {
+    background-color: var(--category-education-bg);
+    color: var(--category-education-text);
+    border: 1px solid var(--category-education-border);
+    border-radius: var(--radius-xl);
+    padding: 1.25rem;
+  }
+
+  .card-category-scholarship {
+    background-color: var(--category-scholarship-bg);
+    color: var(--category-scholarship-text);
+    border: 1px solid var(--category-scholarship-border);
+    border-radius: var(--radius-xl);
+    padding: 1.25rem;
+  }
+
+  .card-category-scheme {
+    background-color: var(--category-scheme-bg);
+    color: var(--category-scheme-text);
+    border: 1px solid var(--category-scheme-border);
+    border-radius: var(--radius-xl);
+    padding: 1.25rem;
+  }
+
+  .card-category-service {
+    background-color: var(--category-service-bg);
+    color: var(--category-service-text);
+    border: 1px solid var(--category-service-border);
+    border-radius: var(--radius-xl);
+    padding: 1.25rem;
+  }
+
+  /* ── Indian Line Motif Background ───────────────────────────────────────── */
+  .motif-bg {
+    background-image: var(--motif-pattern);
+    background-repeat: repeat;
+  }
+
+  /* ── Refined Lightweight Buttons ────────────────────────────────────────── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    line-height: 1;
+    border-radius: var(--radius-lg);
+    padding: 0.625rem 1.25rem;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition:
+      background-color 140ms ease,
+      border-color 140ms ease,
+      box-shadow 140ms ease,
+      opacity 140ms ease,
+      transform 100ms ease;
+    user-select: none;
+    white-space: nowrap;
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  .btn:active:not(:disabled) { transform: scale(0.975); }
+  .btn:disabled               { opacity: 0.45; cursor: not-allowed; }
+
+  .btn-sm { padding: 0.375rem 0.875rem; font-size: 0.8125rem; }
+  .btn-lg { padding: 0.875rem 1.75rem;  font-size: 1rem; border-radius: var(--radius-xl); }
+
+  .btn-primary {
+    background-color: var(--accent);
+    color: var(--accent-foreground);
+    border-color: var(--accent);
+  }
+  .btn-primary:hover:not(:disabled) {
+    background-color: hsl(24 92% 48%);
+    border-color: hsl(24 92% 48%);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .btn-secondary {
+    background-color: var(--secondary);
+    color: var(--secondary-foreground);
+    border-color: var(--border);
+  }
+  .btn-secondary:hover:not(:disabled) {
+    background-color: var(--muted);
+    border-color: var(--border);
+  }
+
+  .btn-ghost {
+    background-color: transparent;
+    color: var(--foreground);
+    border-color: transparent;
+  }
+  .btn-ghost:hover:not(:disabled) {
+    background-color: var(--muted);
+  }
+
+  .btn-outline {
+    background-color: transparent;
+    color: var(--foreground);
+    border-color: var(--border);
+  }
+  .btn-outline:hover:not(:disabled) {
+    background-color: var(--muted);
+    border-color: var(--border);
+  }
+
+  /* ── Refined Warm Inputs ────────────────────────────────────────────────── */
+  .input {
+    width: 100%;
+    background-color: var(--card);
+    color: var(--foreground);
+    border: 1px solid var(--input);
+    border-radius: var(--radius-lg);
+    padding: 0.625rem 0.875rem;
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    transition: border-color 140ms ease, box-shadow 140ms ease;
+  }
+  .input::placeholder { color: var(--muted-foreground); }
+  .input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-subtle);
+  }
+  .input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-color: var(--muted);
+  }
+
+  /* ── Accessible Badges ─────────────────────────────────────────────────── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1;
+    border-radius: var(--radius-full);
+    padding: 0.25rem 0.625rem;
+    white-space: nowrap;
+  }
+
+  .badge-eligible    { background-color: var(--eligible-subtle);    color: var(--eligible);    }
+  .badge-maybe       { background-color: var(--maybe-subtle);       color: var(--maybe);       }
+  .badge-ineligible  { background-color: var(--ineligible-subtle);  color: var(--ineligible);  }
+  .badge-official    { background-color: var(--official-subtle);    color: var(--official);    }
+  .badge-verified    { background-color: var(--verified-subtle);    color: var(--verified);    }
+  .badge-saffron     { background-color: var(--accent-saffron-subtle); color: var(--accent-saffron); }
+  .badge-green       { background-color: var(--accent-green-subtle);   color: var(--accent-green); }
+  .badge-blue        { background-color: var(--accent-blue-subtle);    color: var(--accent-blue); }
+  .badge-purple      { background-color: var(--accent-purple-subtle);  color: var(--accent-purple); }
+  .badge-muted       { background-color: var(--muted);              color: var(--muted-foreground); }
+
+  .source-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border-radius: var(--radius-sm);
+    padding: 0.2rem 0.5rem;
+    border: 1px solid currentColor;
+  }
+  .source-badge-official {
+    color: var(--official);
+    background-color: var(--official-subtle);
+    border-color: var(--official);
+  }
+  .source-badge-verified {
+    color: var(--verified);
+    background-color: var(--verified-subtle);
+    border-color: var(--verified);
+  }
+
+  /* ── Organic Floating Constellation Animation ── */
+  .animate-float {
+    animation: float 7s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes float {
+  0% {
+    transform: translate(-50%, -50%) translateY(0px) translateX(0px);
+  }
+  50% {
+    transform: translate(-50%, -50%) translateY(-4px) translateX(3px);
+  }
+  100% {
+    transform: translate(-50%, -50%) translateY(3px) translateX(-4px);
+  }
+}
+
+
+/* --------------------------------------------------------------------------
+   ACCESSIBILITY & REDUCED MOTION
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .animate-float {
+    animation: none !important;
+  }
+}

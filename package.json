@@ -1,0 +1,32 @@
+{
+  "name": "vayam",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Vayam — Civic intelligence for every Indian. A platform to discover government schemes, services, and rights relevant to your life.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.112.2",
+    "framer-motion": "^12.23.6",
+    "lucide-react": "^0.525.0",
+    "next": "16.3.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "sarvamai": "^1.1.8"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.0",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}

@@ -1,0 +1,178 @@
+/**
+ * lib/i18n/en.ts
+ *
+ * English (en) translations for Vayam.
+ */
+
+import type { TranslationMap } from "./types";
+
+export const en: TranslationMap = {
+  // Navigation
+  "nav.home": "Home",
+  "nav.explore": "Explore",
+  "nav.timeline": "Timeline",
+  "nav.assistant": "Assistant",
+  "nav.profile": "Profile",
+  "nav.section": "Civic Intelligence",
+  "nav.home.desc": "Personalized dashboard",
+  "nav.explore.desc": "Schemes, services & rights",
+  "nav.timeline.desc": "Milestones & deadlines",
+  "nav.assistant.desc": "AI interaction layer",
+  "nav.profile.desc": "Life stage & settings",
+
+  // Language selector
+  "lang.select": "Select Language (भाषा)",
+  "lang.en": "English",
+  "lang.hi": "हिन्दी",
+  "lang.mr": "मराठी",
+  "lang.comingSoon": "Coming soon",
+
+  // Header
+  "header.badge": "Civic Intelligence",
+  "header.notifications": "View notifications",
+  "header.profile.lifeStage": "Young Adult",
+  "header.profile.viewProfile": "View Profile & Life Stage",
+  "header.profile.opportunities": "Matched Opportunities",
+  "header.profile.privacy": "Privacy & Data Control",
+  "header.profile.help": "Civic Help & Support",
+
+  // Sidebar
+  "sidebar.civicIntelligence": "Civic Intelligence",
+  "sidebar.appearance": "Appearance",
+  "sidebar.officialData": "Official Data Provenance",
+  "sidebar.officialDataDesc": "Government Gazette Verified",
+
+  // Home
+  "home.greeting": "Namaste",
+  "home.subtitle": "Your personalized civic intelligence dashboard",
+  "home.profileBadge": "Profile Active",
+  "home.quickActions": "Quick Actions",
+  "home.exploreSchemes": "Explore Schemes",
+  "home.askAssistant": "Ask Assistant",
+  "home.viewTimeline": "View Timeline",
+  "home.recommended": "Recommended for You",
+  "home.upcoming": "Upcoming Milestones",
+  "home.noProfile": "No profile set",
+
+  // Explore
+  "explore.title": "Explore",
+  "explore.description": "Browse verified government schemes, services and rights",
+  "explore.search.placeholder": "Search schemes, services, rights...",
+  "explore.filter.all": "All",
+  "explore.filter.verified": "Verified only",
+  "explore.filter.sortBy": "Sort by",
+  "explore.filter.relevance": "Relevance",
+  "explore.filter.newest": "Newest",
+  "explore.filter.az": "A–Z",
+  "explore.recommended": "Recommended for You",
+  "explore.allRecords": "All Records",
+  "explore.noResults": "No results found",
+  "explore.noResultsDesc": "Try adjusting your search or filters",
+  "explore.clearSearch": "Clear search",
+  "explore.type.scheme": "Scheme",
+  "explore.type.service": "Service",
+  "explore.type.right": "Right",
+  "explore.type.benefit": "Benefit",
+  "explore.type.career": "Career",
+  "explore.type.skill": "Skill",
+  "explore.category.education": "Education",
+  "explore.category.finance": "Finance",
+  "explore.category.health": "Health",
+  "explore.category.agriculture": "Agriculture",
+  "explore.category.services": "Services",
+  "explore.category.rights": "Rights",
+  "explore.category.career": "Career",
+  "explore.category.housing": "Housing",
+  "explore.category.pension": "Pension",
+  "explore.category.women": "Women",
+  "explore.category.disability": "Disability",
+
+  // Knowledge card
+  "card.whyShowing": "Why you're seeing this",
+  "card.eligibility.likely": "Likely Eligible",
+  "card.eligibility.partial": "Partial Match",
+  "card.eligibility.unknown": "Check Eligibility",
+  "card.eligibility.notYet": "Not Yet Eligible",
+  "card.eligibility.notEligible": "Not Eligible",
+  "card.verified": "Verified source",
+  "card.requiresReview": "Needs verification",
+  "card.viewDetails": "View Details",
+  "card.officialSource": "Official Source",
+  "card.matchScore": "match",
+
+  // Assistant
+  "assistant.greeting": "Namaste. I'm Vayam.",
+  "assistant.subtitle": "I can help you understand what opportunities, services, benefits and rights may matter to you across your civic journey.",
+  "assistant.suggestedLabel": "Suggested Prompts:",
+  "assistant.inputPlaceholder": "Ask Vayam about scholarships, services, turning 18, rights, loans...",
+  "assistant.send": "Send",
+  "assistant.clearChat": "Clear Chat",
+  "assistant.toolStatus.checking": "Checking Vayam Knowledge Repository...",
+  "assistant.toolStatus.evaluating": "Evaluating Civic Intelligence Core...",
+  "assistant.toolStatus.default": "Consulting Vayam Knowledge Core...",
+  "assistant.source": "Source:",
+  "assistant.verified": "Verified",
+  "assistant.opportunities": "Verified Opportunities",
+  "assistant.voiceToggle": "Voice Responses",
+  "assistant.voiceOn": "Voice On",
+  "assistant.voiceOff": "Voice Off",
+  "assistant.startVoice": "Start voice input",
+  "assistant.stopVoice": "Stop voice input",
+  "assistant.stopSpeaking": "Stop speaking",
+  "assistant.voiceListening": "Listening...",
+  "assistant.voiceProcessing": "Understanding...",
+  "assistant.voiceSpeaking": "Speaking...",
+  "assistant.voiceError": "Voice input failed. Please type your question.",
+  "assistant.voiceUnsupported": "Voice input isn't supported on this browser. You can still type your message.",
+  "assistant.context": "Context:",
+  "assistant.noProfile": "No Profile (Click to Enable)",
+  "assistant.suggestedPrompts.0": "What's relevant for me?",
+  "assistant.suggestedPrompts.1": "I'm turning 18 soon. What should I know?",
+  "assistant.suggestedPrompts.2": "Find scholarships for higher education",
+  "assistant.suggestedPrompts.3": "What can I do after 12th?",
+  "assistant.suggestedPrompts.4": "What are my citizen rights?",
+  "assistant.suggestedPrompts.5": "Can I get a loan?",
+  "assistant.clarify": "What kind of support or scheme are you looking for? Please choose an option below:",
+  "assistant.exploreCategory": "Explore Category",
+  "assistant.openSource": "Open Official Source",
+  "assistant.exploreAll": "Browse All Records in Explore",
+  "assistant.disclaimer": "Vayam AI uses deterministic rule evaluation & verified government sources.",
+
+  // AI responses
+  "ai.clarify": "What kind of support or scheme are you looking for? Please choose an option below:",
+  "ai.milestones": "Here are upcoming civic milestones for your life stage:",
+  "ai.education": "Here are verified education schemes and scholarships relevant to your profile:",
+  "ai.rights": "Here is official information regarding your legal rights and citizen support services:",
+  "ai.unknown": "I couldn't find verified information about that specific topic in Vayam. Try searching Explore or checking official government portals below:",
+  "ai.default": "Based on Vayam's verified knowledge repository and Civic Intelligence Core, here are relevant records:",
+  "ai.eligibleFor": "Based on your profile, you appear to meet the eligibility requirements for",
+  "ai.missingInfo": "Your profile is missing information needed to confirm eligibility for",
+  "ai.notEligible": "Based on current guidelines, you do not yet satisfy all requirements for",
+
+  // Verification
+  "verification.verified": "Verified source",
+  "verification.requiresReview": "Needs verification",
+  "verification.official": "Official Government Source",
+  "verification.lastVerified": "Last verified",
+
+  // Eligibility
+  "eligibility.likely": "Likely Eligible",
+  "eligibility.partial": "Partial Match",
+  "eligibility.unknown": "Check Eligibility",
+  "eligibility.notYet": "Not Yet Eligible",
+  "eligibility.notEligible": "Not Eligible",
+
+  // Milestones
+  "milestone.upcoming": "Upcoming",
+  "milestone.active": "Active",
+  "milestone.past": "Past",
+
+  // Common
+  "common.loading": "Loading...",
+  "common.error": "Something went wrong",
+  "common.retry": "Retry",
+  "common.close": "Close",
+  "common.viewAll": "View All",
+  "common.learnMore": "Learn More",
+  "common.new": "New",
+};
