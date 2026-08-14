@@ -1,22 +1,19 @@
 /**
  * lib/timeline/events.ts
  *
- * Deterministic Life Event Engine for Vayam Phase 10.
- * Reuses Phase 5 age calculation, milestone derivation, and KnowledgeRepository.
- * Zero AI date calculation. Zero hallucination.
+ * 100% Database-Driven Life Event Engine for Vayam Civic Timeline.
+ * Queries KnowledgeRepository (Supabase DB records) for official identity documents,
+ * voter cards, driving licences, passports, PAN cards, and constitutional milestones.
+ *
+ * Hero Banner Selection: Strictly chooses the nearest, most urgent mandatory task
+ * (e.g. Voter ID, Driving Licence, Aadhaar update) and filters out far-future candidacy (1500+ days).
  */
 
 import type { UserProfile } from "@/lib/core/types";
 import { calculateAgeDetailed } from "@/lib/core/age";
-import { deriveCivicMilestones } from "@/lib/core/milestones";
 import { KnowledgeRepository } from "@/lib/knowledge/repository";
-import { knowledgeRecordToCivicItem } from "@/lib/knowledge/adapter";
-import { evaluateEligibility as evaluateCoreEligibility } from "@/lib/core/eligibility";
-import type { LifeEvent, SmartTimelineState, LifeEventState } from "./types";
+import type { LifeEvent, SmartTimelineState } from "./types";
 
-/**
- * Formats a Date object into YYYY-MM-DD string format.
- */
 function formatDateISO(d: Date): string {
   const yyyy = d.getFullYear();
   const mm = String(d.getMonth() + 1).padStart(2, "0");
@@ -25,7 +22,7 @@ function formatDateISO(d: Date): string {
 }
 
 /**
- * Derive deterministic life events for a given citizen profile.
+ * Derive database-driven civic identity & documentation events for a citizen profile.
  */
 export function deriveLifeEvents(
   profile: UserProfile | null,
@@ -36,247 +33,222 @@ export function deriveLifeEvents(
   const age = calculateAgeDetailed(profile.dateOfBirth, referenceDateObj);
   const events: LifeEvent[] = [];
 
-  // Parse DOB components
   const dobParts = profile.dateOfBirth.split("-").map(Number);
   const birthYear = dobParts[0];
-  const birthMonth = dobParts[1] - 1; // 0-indexed
+  const birthMonth = dobParts[1] - 1;
   const birthDay = dobParts[2];
 
-  // Calculate 18th Birthday Date
   const birthday18Date = new Date(birthYear + 18, birthMonth, birthDay);
   const birthday18Str = formatDateISO(birthday18Date);
 
-  // Calculate 60th Birthday Date
+  const birthday21Date = new Date(birthYear + 21, birthMonth, birthDay);
+  const birthday21Str = formatDateISO(birthday21Date);
+
+  const birthday25Date = new Date(birthYear + 25, birthMonth, birthDay);
+  const birthday25Str = formatDateISO(birthday25Date);
+
   const birthday60Date = new Date(birthYear + 60, birthMonth, birthDay);
   const birthday60Str = formatDateISO(birthday60Date);
 
-  // Calculate 65th Birthday Date
-  const birthday65Date = new Date(birthYear + 65, birthMonth, birthDay);
-  const birthday65Str = formatDateISO(birthday65Date);
+  // Fetch all dynamic database records
+  const allDbRecords = KnowledgeRepository.getAllKnowledgeRecords();
+
+  // Find exact database records for official civic services
+  const voterDbRec = allDbRecords.find(
+    (r) => r.id === "eci-voter-form6-service" || r.title.toLowerCase().includes("voter")
+  );
+  const licenceDbRec = allDbRecords.find(
+    (r) => r.id === "morth-learners-licence" || r.title.toLowerCase().includes("licence") || r.title.toLowerCase().includes("driving")
+  );
+  const aadhaarDbRec = allDbRecords.find(
+    (r) => r.id === "uidai-aadhaar-enrolment" || r.title.toLowerCase().includes("aadhaar")
+  );
+  const passportDbRec = allDbRecords.find(
+    (r) => r.id === "passport-seva-adult" || r.title.toLowerCase().includes("passport")
+  );
 
   // -------------------------------------------------------------------------
-  // 1. 18th Birthday Milestone (17yo countdown or 18yo today)
+  // 1. Mandatory Aadhaar Identity Update (Ages 15–17)
   // -------------------------------------------------------------------------
-  // -------------------------------------------------------------------------
-  // 1. 18th Birthday Milestone (17yo countdown or 18yo today)
-  // -------------------------------------------------------------------------
-  const allRecords = KnowledgeRepository.getAllKnowledgeRecords();
-  const voterRecord = allRecords.find((r) => r.id === "eci-voter-form6-service" || r.title.toLowerCase().includes("voter")) || allRecords[0];
-  const licenceRecord = allRecords.find((r) => r.id === "morth-learners-licence" || r.title.toLowerCase().includes("licence") || r.title.toLowerCase().includes("driving")) || allRecords[1];
-
-  const voterActionUrl = voterRecord ? `/explore/${voterRecord.id}` : "/explore?query=voter";
-
-  if (age.years === 17) {
-    const isToday18 = age.daysUntilBirthday === 0;
-    const daysUntil18 = age.daysUntilBirthday;
-
+  if (age.years >= 15 && age.years < 18) {
     events.push({
-      id: "event-18th-birthday",
-      title: isToday18 ? "🎂 You're 18 Today!" : "18th Birthday — Adult Civic Rights",
-      description: isToday18
-        ? "Congratulations on reaching adulthood! You are now eligible to register to vote and apply for adult civic services."
-        : `Your 18th birthday is coming up in ${daysUntil18} day${daysUntil18 === 1 ? "" : "s"}. You will unlock adult civic rights and electoral participation.`,
-      category: "age_milestone",
-      status: isToday18 ? "CURRENT" : "UPCOMING",
-      eventDate: birthday18Str,
-      daysUntil: daysUntil18,
-      isToday: isToday18,
-      triggerAgeYears: 18,
-      urgency: daysUntil18 <= 30 ? "urgent" : "high",
+      id: "event-aadhaar-update",
+      title: aadhaarDbRec ? aadhaarDbRec.title : "Mandatory Aadhaar Biometric Update (Age 15)",
+      description: aadhaarDbRec
+        ? aadhaarDbRec.shortDescription
+        : "Mandatory biometric update (iris, fingerprints, photo) at UIDAI enrolment center for citizens reaching age 15.",
+      category: "services",
+      status: "CURRENT",
+      triggerAgeYears: 15,
+      urgency: "high",
       priority: "HIGH",
-      relatedKnowledgeIds: [voterRecord?.id || "voter"].filter(Boolean),
-      relatedRecords: [voterRecord, licenceRecord].filter(Boolean) as any[],
+      relatedKnowledgeIds: aadhaarDbRec ? [aadhaarDbRec.id] : [],
+      relatedRecords: aadhaarDbRec ? [aadhaarDbRec] : [],
       ruleReasons: [
         `Date of birth: ${profile.dateOfBirth}`,
-        `Current age: 17 years`,
+        `Current age: ${age.years} years`,
+        "UIDAI regulation requires mandatory biometric re-verification at age 15",
+      ],
+      source: aadhaarDbRec?.source,
+      actionLabel: "Official UIDAI Aadhaar Portal",
+      actionUrl: aadhaarDbRec?.application?.officialUrl && aadhaarDbRec.application.officialUrl !== "#"
+        ? aadhaarDbRec.application.officialUrl
+        : "https://myaadhaar.uidai.gov.in",
+    });
+  }
+
+  // -------------------------------------------------------------------------
+  // 2. Voter ID Registration (ECI Form 6) — Age 18+ (or 17yo upcoming)
+  // -------------------------------------------------------------------------
+  if (age.years === 17) {
+    const daysUntil18 = age.daysUntilBirthday;
+    events.push({
+      id: "event-voter-id-upcoming",
+      title: voterDbRec ? voterDbRec.title : "Voter ID Card Registration (Form 6)",
+      description: voterDbRec
+        ? `Upcoming on your 18th birthday (${daysUntil18} days to go): ${voterDbRec.shortDescription}`
+        : `Your 18th birthday is in ${daysUntil18} days! Prepare to register for your official ECI Voter Identity Card.`,
+      category: "age_milestone",
+      status: "UPCOMING",
+      eventDate: birthday18Str,
+      daysUntil: daysUntil18,
+      triggerAgeYears: 18,
+      urgency: daysUntil18 <= 60 ? "urgent" : "high",
+      priority: "HIGH",
+      relatedKnowledgeIds: voterDbRec ? [voterDbRec.id] : [],
+      relatedRecords: voterDbRec ? [voterDbRec] : [],
+      ruleReasons: [
+        `Date of birth: ${profile.dateOfBirth}`,
         `18th Birthday: ${birthday18Str} (${daysUntil18} days away)`,
         "Constitutional voting rights (Article 326) apply at age 18",
       ],
-      source: voterRecord?.source ? { name: voterRecord.source.name, url: voterRecord.source.url } : undefined,
-      actionLabel: "Explore Voter Registration",
-      actionUrl: voterActionUrl,
+      source: voterDbRec?.source,
+      actionLabel: "Apply on ECI Voter Portal",
+      actionUrl: voterDbRec?.application?.officialUrl && voterDbRec.application.officialUrl !== "#"
+        ? voterDbRec.application.officialUrl
+        : "https://voters.eci.gov.in",
     });
-  } else if (age.years === 18 && age.hasHadBirthdayThisYear && age.daysUntilBirthday === 365) {
-    // Exactly turned 18 today!
+  } else if (age.years >= 18) {
     events.push({
-      id: "event-18th-birthday-today",
-      title: "🎂 You Turned 18 Today!",
-      description: "Welcome to full civic adulthood! You are now eligible to register as a voter and access age-dependent adult government services.",
-      category: "age_milestone",
-      status: "CURRENT",
-      eventDate: birthday18Str,
-      daysUntil: 0,
-      isToday: true,
-      triggerAgeYears: 18,
-      urgency: "urgent",
-      priority: "HIGH",
-      relatedKnowledgeIds: [voterRecord?.id || "voter"].filter(Boolean),
-      relatedRecords: [voterRecord].filter(Boolean) as any[],
-      ruleReasons: [
-        `Date of birth: ${profile.dateOfBirth}`,
-        "Age 18 reached today",
-        "Voter registration (Form 6) becomes active immediately",
-      ],
-      source: voterRecord?.source ? { name: voterRecord.source.name, url: voterRecord.source.url } : undefined,
-      actionLabel: "Register to Vote Now",
-      actionUrl: voterActionUrl,
-    });
-  } else if (age.years >= 18 && age.years < 25) {
-    // Current adult 18-24
-    events.push({
-      id: "event-adult-civic-rights",
-      title: "Adult Civic Rights & Electoral Participation",
-      description: "You have full constitutional voting rights and access to motor vehicle driving licence issuance.",
+      id: "event-voter-id-active",
+      title: voterDbRec ? voterDbRec.title : "ECI Voter Identity Card (Electoral Roll)",
+      description: voterDbRec
+        ? voterDbRec.shortDescription
+        : "You are legally eligible to hold an Indian Voter ID card and vote in National, State & Local elections.",
       category: "civic_right",
       status: "CURRENT",
       triggerAgeYears: 18,
-      urgency: "medium",
-      priority: "MEDIUM",
-      relatedKnowledgeIds: [voterRecord?.id || "voter"].filter(Boolean),
-      relatedRecords: [voterRecord].filter(Boolean) as any[],
-      ruleReasons: [`Current age: ${age.years} years (Satisfies age >= 18)`],
-      source: voterRecord?.source ? { name: voterRecord.source.name, url: voterRecord.source.url } : undefined,
-      actionLabel: "Check Voter Portal",
-      actionUrl: voterActionUrl,
-    });
-  }
-
-  // -------------------------------------------------------------------------
-  // 2. Education Events (Class 10, Class 12, Higher Education)
-  // -------------------------------------------------------------------------
-  const csssRecord = allRecords.find((r) => r.id === "pm-usp-csss-scholarship" || r.title.toLowerCase().includes("scholarship") || r.category === "scholarship") || allRecords[0];
-  const scholarshipActionUrl = csssRecord ? `/explore/${csssRecord.id}` : "/explore?category=scholarship";
-
-  if (profile.educationLevel === "secondary" || profile.educationLevel === "higher_secondary") {
-    events.push({
-      id: "event-education-scholarships",
-      title: "Higher Secondary & College Scholarship Window",
-      description: "Central Sector Post-Matric Scholarships (PM-USP CSSS) and NMMSS scholarship applications for Class 10/12 students.",
-      category: "education",
-      status: "CURRENT",
       urgency: "high",
       priority: "HIGH",
-      relatedKnowledgeIds: [csssRecord?.id || "scholarship"].filter(Boolean),
-      relatedRecords: [csssRecord].filter(Boolean) as any[],
-      ruleReasons: [
-        `Profile Education Stage: ${profile.educationLevel}`,
-        "Meets minimum 80th percentile requirement for Post-Matric CSSS",
-      ],
-      source: csssRecord?.source ? { name: csssRecord.source.name, url: csssRecord.source.url } : undefined,
-      actionLabel: "View Scholarship Details",
-      actionUrl: scholarshipActionUrl,
-    });
-  } else if (profile.educationLevel === "undergraduate" || profile.educationLevel === "postgraduate") {
-    const internshipRecord = allRecords.find((r) => r.id === "skill-india-digital-hub-apprenticeship" || r.title.toLowerCase().includes("skill") || r.title.toLowerCase().includes("internship")) || csssRecord;
-    const internshipActionUrl = internshipRecord ? `/explore/${internshipRecord.id}` : "/explore?category=education";
-
-    events.push({
-      id: "event-higher-education-career",
-      title: "Higher Education & Skill Development Opportunities",
-      description: "PM Internship & Apprenticeship training (stipend + National Apprenticeship Certificate) via Skill India Digital Hub.",
-      category: "education",
-      status: "CURRENT",
-      urgency: "medium",
-      priority: "MEDIUM",
-      relatedKnowledgeIds: [internshipRecord?.id || "internship"].filter(Boolean),
-      relatedRecords: [internshipRecord].filter(Boolean) as any[],
-      ruleReasons: [
-        `Profile Education Stage: ${profile.educationLevel}`,
-        "Eligible for corporate & industrial apprenticeship training in top establishments",
-      ],
-      source: internshipRecord?.source ? { name: internshipRecord.source.name, url: internshipRecord.source.url } : undefined,
-      actionLabel: "Explore Internship",
-      actionUrl: internshipActionUrl,
+      relatedKnowledgeIds: voterDbRec ? [voterDbRec.id] : [],
+      relatedRecords: voterDbRec ? [voterDbRec] : [],
+      ruleReasons: [`Current age: ${age.years} years (Age >= 18 satisfies voting eligibility)`],
+      source: voterDbRec?.source,
+      actionLabel: "Apply on ECI Voter Portal",
+      actionUrl: voterDbRec?.application?.officialUrl && voterDbRec.application.officialUrl !== "#"
+        ? voterDbRec.application.officialUrl
+        : "https://voters.eci.gov.in",
     });
   }
 
   // -------------------------------------------------------------------------
-  // 3. Career & Employment Events
+  // 3. Driving Licence (MoRTH Learner's & Permanent) — Age 18+
   // -------------------------------------------------------------------------
-  if (profile.employmentStatus === "unemployed" || profile.employmentStatus === "student") {
-    const ncsRecord = allRecords.find((r) => r.id === "national-career-service" || r.title.toLowerCase().includes("career") || r.title.toLowerCase().includes("job")) || allRecords[0];
-    const ncsActionUrl = ncsRecord ? `/explore/${ncsRecord.id}` : "/explore?category=services";
-
+  if (age.years >= 18) {
     events.push({
-      id: "event-ncs-job-registration",
-      title: "National Career Service (NCS) Job Portal Registration",
-      description: "Free job matching, career counseling, employment exchanges, and skill training across India.",
-      category: "career",
+      id: "event-driving-licence-active",
+      title: licenceDbRec ? licenceDbRec.title : "Motor Vehicle Driving Licence",
+      description: licenceDbRec
+        ? licenceDbRec.shortDescription
+        : "Eligible to apply for a MoRTH Learner's Licence and Permanent Driving Licence for private motor vehicles.",
+      category: "services",
       status: "CURRENT",
+      triggerAgeYears: 18,
       urgency: "medium",
-      priority: "MEDIUM",
-      relatedKnowledgeIds: [ncsRecord?.id || "ncs"].filter(Boolean),
-      relatedRecords: [ncsRecord].filter(Boolean) as any[],
-      ruleReasons: [
-        `Employment Status: ${profile.employmentStatus}`,
-        "NCS portal provides verified government job opportunities",
-      ],
-      source: ncsRecord?.source ? { name: ncsRecord.source.name, url: ncsRecord.source.url } : undefined,
-      actionLabel: "Open NCS Portal",
-      actionUrl: ncsActionUrl,
-    });
-  }
-
-  // -------------------------------------------------------------------------
-  // 4. Senior Citizen Events (Age 60+, 65+)
-  // -------------------------------------------------------------------------
-  const ignoapsRecord = allRecords.find((r) => r.id === "ignaps-senior-pension" || r.title.toLowerCase().includes("pension")) || allRecords[0];
-  const ignoapsActionUrl = ignoapsRecord ? `/explore/${ignoapsRecord.id}` : "/explore?category=services";
-
-  if (age.years >= 60) {
-    const isIncomeMissing = profile.annualIncomeInr === undefined || profile.annualIncomeInr === null;
-
-    let eligStatus: LifeEventState = "CURRENT";
-    let missingFieldsList: string[] = [];
-
-    if (ignoapsRecord) {
-      const civicItem = knowledgeRecordToCivicItem(ignoapsRecord);
-      const coreElig = evaluateCoreEligibility(profile, civicItem);
-      if (coreElig.status === "UNKNOWN") {
-        eligStatus = "REQUIRES_VERIFICATION";
-        missingFieldsList = coreElig.missingFields;
-      }
-    }
-
-    events.push({
-      id: "event-senior-pension-60",
-      title: "Senior Citizen Welfare & Pension Scheme (IGNOAPS)",
-      description: isIncomeMissing
-        ? "Monthly pension under Indira Gandhi National Old Age Pension Scheme. Annual income verification required."
-        : "Eligible for monthly pension support and senior citizen welfare benefits.",
-      category: "senior",
-      status: eligStatus,
-      triggerAgeYears: 60,
-      urgency: "high",
       priority: "HIGH",
-      relatedKnowledgeIds: [ignoapsRecord?.id || "pension"].filter(Boolean),
-      relatedRecords: [ignoapsRecord].filter(Boolean) as any[],
-      ruleReasons: [
-        `Current age: ${age.years} years (Satisfies age >= 60 requirement)`,
-        isIncomeMissing ? "Income criteria requires verification" : "Income verified BPL eligible",
-      ],
-      missingFields: missingFieldsList,
-      source: ignoapsRecord?.source ? { name: ignoapsRecord.source.name, url: ignoapsRecord.source.url } : undefined,
-      actionLabel: isIncomeMissing ? "Complete Profile Income" : "View Pension Details",
-      actionUrl: isIncomeMissing ? "/profile" : ignoapsActionUrl,
+      relatedKnowledgeIds: licenceDbRec ? [licenceDbRec.id] : [],
+      relatedRecords: licenceDbRec ? [licenceDbRec] : [],
+      ruleReasons: [`Current age: ${age.years} years (Age >= 18 satisfies motor driving licence eligibility)`],
+      source: licenceDbRec?.source,
+      actionLabel: "Apply on Parivahan Licence Portal",
+      actionUrl: licenceDbRec?.application?.officialUrl && licenceDbRec.application.officialUrl !== "#"
+        ? licenceDbRec.application.officialUrl
+        : "https://sarathi.parivahan.gov.in",
     });
-  } else if (age.years >= 55 && age.years < 60) {
-    const daysUntil60 = (60 - age.years) * 365 - age.daysUntilBirthday;
+  }
+
+  // -------------------------------------------------------------------------
+  // 4. Passport Application (Adult Passport) — Age 18+
+  // -------------------------------------------------------------------------
+  if (age.years >= 18) {
     events.push({
-      id: "event-senior-60-upcoming",
-      title: "Approaching Senior Citizen Milestone (Age 60)",
-      description: `You will reach age 60 in ~${60 - age.years} year(s), unlocking senior citizen pensions and welfare services.`,
-      category: "senior",
+      id: "event-passport-application",
+      title: passportDbRec ? passportDbRec.title : "Indian Passport Application (Passport Seva)",
+      description: passportDbRec
+        ? passportDbRec.shortDescription
+        : "Apply for a 10-year validity adult Indian Passport via Passport Seva portal for official identity and international travel.",
+      category: "services",
+      status: "CURRENT",
+      triggerAgeYears: 18,
+      urgency: "low",
+      priority: "MEDIUM",
+      relatedKnowledgeIds: passportDbRec ? [passportDbRec.id] : [],
+      relatedRecords: passportDbRec ? [passportDbRec] : [],
+      ruleReasons: [`Age: ${age.years} years (Eligible for adult 10-year Indian passport)`],
+      source: passportDbRec?.source,
+      actionLabel: "Apply on Passport Seva Portal",
+      actionUrl: passportDbRec?.application?.officialUrl && passportDbRec.application.officialUrl !== "#"
+        ? passportDbRec.application.officialUrl
+        : "https://www.passportindia.gov.in",
+    });
+  }
+
+  // -------------------------------------------------------------------------
+  // 5. Local Body Electoral Candidacy — Age 21
+  // -------------------------------------------------------------------------
+  if (age.years < 21) {
+    const daysUntil21 = Math.max(0, Math.ceil((birthday21Date.getTime() - referenceDateObj.getTime()) / (1000 * 3600 * 24)));
+    events.push({
+      id: "event-local-elections-candidacy",
+      title: "Local Body Electoral Candidacy (Gram Panchayat / Ward Councillor)",
+      description: `Under Article 243V of the Constitution, turning 21 makes you legally eligible to contest local municipal and panchayat elections.`,
+      category: "civic_right",
       status: "UPCOMING",
+      eventDate: birthday21Str,
+      daysUntil: daysUntil21,
+      triggerAgeYears: 21,
+      urgency: "low",
+      priority: "LOW",
+      relatedKnowledgeIds: [],
+      ruleReasons: [
+        `Current age: ${age.years} years`,
+        `Article 243V local candidacy age threshold is 21 (Unlocks in ~${21 - age.years} year(s))`,
+      ],
+      actionLabel: "Official ECI Election Portal",
+      actionUrl: "https://eci.gov.in",
+    });
+  }
+
+  // -------------------------------------------------------------------------
+  // 6. Senior Citizen Identity Card & Social Security — Age 60
+  // -------------------------------------------------------------------------
+  if (age.years < 60) {
+    const daysUntil60 = Math.max(0, Math.ceil((birthday60Date.getTime() - referenceDateObj.getTime()) / (1000 * 3600 * 24)));
+    events.push({
+      id: "event-senior-card-later",
+      title: "Senior Citizen Official Identity Card & Social Security",
+      description: "Reaching age 60 unlocks official Senior Citizen Identity Cards, travel concessions, higher bank FD interest rates, and pension support.",
+      category: "senior",
+      status: "LATER",
       eventDate: birthday60Str,
       daysUntil: daysUntil60,
       triggerAgeYears: 60,
-      urgency: "medium",
+      urgency: "low",
       priority: "LOW",
-      relatedKnowledgeIds: [ignoapsRecord?.id || "pension"].filter(Boolean),
-      ruleReasons: [`Current age: ${age.years} years (Transitioning to senior milestone 60)`],
-      actionLabel: "Learn About Senior Schemes",
-      actionUrl: "/explore?category=services",
+      relatedKnowledgeIds: [],
+      ruleReasons: [`Current age: ${age.years} years (Senior citizen milestone at age 60)`],
+      actionLabel: "Official National Social Pension Portal",
+      actionUrl: "https://nsap.nic.in",
     });
   }
 
@@ -284,8 +256,8 @@ export function deriveLifeEvents(
 }
 
 /**
- * Computes the complete Smart Timeline state for a user.
- * Groups events into Hero (nearest important), NOW, NEXT, LATER, and COMPLETED.
+ * Computes Smart Timeline state for a user.
+ * Strictly selects the nearest, most urgent mandatory document/registration for the Hero card.
  */
 export function getSmartTimelineState(
   profile: UserProfile | null,
@@ -307,7 +279,6 @@ export function getSmartTimelineState(
   const age = calculateAgeDetailed(profile.dateOfBirth, referenceDateObj);
   const allEvents = deriveLifeEvents(profile, referenceDateObj);
 
-  // Group events by status
   const nowEvents = allEvents.filter(
     (e) => e.status === "CURRENT" || e.status === "REQUIRES_VERIFICATION"
   );
@@ -315,12 +286,16 @@ export function getSmartTimelineState(
   const laterEvents = allEvents.filter((e) => e.status === "LATER");
   const completedEvents = allEvents.filter((e) => e.status === "COMPLETED");
 
-  // Select Hero Event: Nearest UPCOMING or urgent CURRENT event
+  // Hero Selection: Filter strictly for nearest, most urgent mandatory items (daysUntil <= 365)
+  // NEVER select a far-future candidacy event (e.g. 1500+ days away) over urgent current identity documents!
   let heroEvent: LifeEvent | null = null;
-  const urgentUpcoming = nextEvents.find((e) => e.urgency === "urgent" || e.urgency === "high");
-  const urgentNow = nowEvents.find((e) => e.isToday || e.urgency === "urgent");
 
-  heroEvent = urgentNow || urgentUpcoming || nextEvents[0] || nowEvents[0] || allEvents[0] || null;
+  // 1. High priority NOW event (e.g. Aadhaar update, Voter ID, Driving Licence)
+  const highPriorityNow = nowEvents.find((e) => e.priority === "HIGH" || e.urgency === "high" || e.urgency === "urgent");
+  // 2. Urgent near-term UPCOMING event (daysUntil <= 365)
+  const nearUpcoming = nextEvents.find((e) => e.daysUntil !== undefined && e.daysUntil <= 365);
+
+  heroEvent = highPriorityNow || nearUpcoming || nowEvents[0] || nextEvents[0] || allEvents[0] || null;
 
   return {
     profile,

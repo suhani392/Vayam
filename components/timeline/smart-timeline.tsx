@@ -13,7 +13,7 @@
  * - 100% multilingual via useLanguage() t()
  */
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useLanguage } from "@/hooks/useLanguage";
 import { getSmartTimelineState } from "@/lib/timeline/events";
@@ -40,15 +40,81 @@ export function SmartTimeline({ initialProfile }: { initialProfile?: UserProfile
   const [activeTab, setActiveTab] = useState<"now" | "next" | "later">("now");
   const { profile, loaded } = useUserProfile();
 
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiResult, setAiResult] = useState<any | null>(null);
+  const [lastFetchedKey, setLastFetchedKey] = useState<string>("");
+
   const currentProfile = loaded && profile ? (profile as UserProfile) : initialProfile;
   const timelineState = currentProfile ? getSmartTimelineState(currentProfile) : null;
   const hero = timelineState?.heroEvent;
+
   const nowEvents = timelineState?.nowEvents ?? [];
   const nextEvents = timelineState?.nextEvents ?? [];
   const laterEvents = timelineState?.laterEvents ?? [];
 
+  const profileKey = currentProfile
+    ? `${currentProfile.gender}-${currentProfile.dateOfBirth}-${currentProfile.location?.stateCode}-${currentProfile.educationLevel}-${currentProfile.employmentStatus}`
+    : "";
+
+  const handleFetchAiTimeline = useCallback(async () => {
+    if (!currentProfile || !currentProfile.dateOfBirth) return;
+    setAiLoading(true);
+    try {
+      const res = await fetch("/api/ai/timeline", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ profile: currentProfile }),
+      });
+      const data = await res.json();
+      if (data.success && data.timeline) {
+        setAiResult(data.timeline);
+      }
+    } catch (e) {
+      console.error("AI Timeline fetch error", e);
+    } finally {
+      setAiLoading(false);
+    }
+  }, [currentProfile]);
+
+  // Auto-run AI timeline analysis when profile is loaded or when profile details change
+  useEffect(() => {
+    if (loaded && currentProfile?.dateOfBirth && profileKey !== lastFetchedKey && !aiLoading) {
+      setLastFetchedKey(profileKey);
+      handleFetchAiTimeline();
+    }
+  }, [loaded, currentProfile, profileKey, lastFetchedKey, aiLoading, handleFetchAiTimeline]);
+
   return (
     <div className="space-y-8">
+      {/* ── Auto-AI Status Banner ── */}
+      <div className="p-4 rounded-2xl bg-gradient-to-r from-accent/15 via-card to-emerald-500/10 border border-accent/30 flex items-center justify-between flex-wrap gap-3 shadow-xs">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-accent/20 text-accent flex items-center justify-center shrink-0">
+            <Sparkles size={20} />
+          </div>
+          <div>
+            <h4 className="text-body font-bold text-foreground">Official Identity & Civic Timeline</h4>
+            <p className="text-caption text-muted-foreground">
+              {aiLoading
+                ? "Analyzing official voter, driving licence, passport, and electoral milestones..."
+                : aiResult?.aiSummary || "Deterministic civic document & identity roadmap for your profile."}
+            </p>
+          </div>
+        </div>
+
+        <button
+          onClick={handleFetchAiTimeline}
+          disabled={aiLoading}
+          className="btn btn-outline btn-xs rounded-xl gap-1.5 font-bold hover:btn-primary cursor-pointer"
+        >
+          {aiLoading ? (
+            <div className="h-3 w-3 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <Sparkles size={12} />
+          )}
+          <span>{aiLoading ? "Analyzing..." : "Refresh"}</span>
+        </button>
+      </div>
 
 
       {/* ── Hero Milestone Banner ── */}
@@ -86,13 +152,25 @@ export function SmartTimeline({ initialProfile }: { initialProfile?: UserProfile
           {/* Hero Action Button */}
           {hero.actionUrl && (
             <div className="pt-2">
-              <Link
-                href={hero.actionUrl as any}
-                className="btn btn-primary rounded-xl gap-2 font-bold px-5 py-2.5 shadow-sm"
-              >
-                <span>{hero.actionLabel || "See what's changing"}</span>
-                <ArrowRight size={16} />
-              </Link>
+              {hero.actionUrl.startsWith("http://") || hero.actionUrl.startsWith("https://") ? (
+                <a
+                  href={hero.actionUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-primary rounded-xl gap-2 font-bold px-5 py-2.5 shadow-sm inline-flex items-center"
+                >
+                  <span>{hero.actionLabel || "Apply on Official Government Portal"}</span>
+                  <ExternalLink size={16} />
+                </a>
+              ) : (
+                <Link
+                  href={hero.actionUrl as any}
+                  className="btn btn-primary rounded-xl gap-2 font-bold px-5 py-2.5 shadow-sm inline-flex items-center"
+                >
+                  <span>{hero.actionLabel || "See details"}</span>
+                  <ArrowRight size={16} />
+                </Link>
+              )}
             </div>
           )}
         </div>
@@ -111,7 +189,7 @@ export function SmartTimeline({ initialProfile }: { initialProfile?: UserProfile
                   : "bg-surface-secondary/70 text-muted-foreground border-transparent hover:text-foreground"
               )}
             >
-              NOW ({nowEvents.length})
+              NOW ({aiResult?.now ? aiResult.now.length : nowEvents.length})
             </button>
             <button
               onClick={() => setActiveTab("next")}
@@ -122,7 +200,7 @@ export function SmartTimeline({ initialProfile }: { initialProfile?: UserProfile
                   : "bg-surface-secondary/70 text-muted-foreground border-transparent hover:text-foreground"
               )}
             >
-              NEXT ({nextEvents.length})
+              NEXT ({aiResult?.next ? aiResult.next.length : nextEvents.length})
             </button>
             <button
               onClick={() => setActiveTab("later")}
@@ -133,7 +211,7 @@ export function SmartTimeline({ initialProfile }: { initialProfile?: UserProfile
                   : "bg-surface-secondary/70 text-muted-foreground border-transparent hover:text-foreground"
               )}
             >
-              LATER ({laterEvents.length})
+              LATER ({aiResult?.later ? aiResult.later.length : laterEvents.length})
             </button>
           </div>
         </div>
@@ -144,14 +222,20 @@ export function SmartTimeline({ initialProfile }: { initialProfile?: UserProfile
             <h3 className="text-h4 font-extrabold text-foreground flex items-center gap-2">
               <CheckCircle2 size={18} className="text-success" /> Requiring Attention Now
             </h3>
-            {nowEvents.length === 0 ? (
-              <p className="text-body-sm text-muted-foreground py-4">No active requirements at this moment.</p>
-            ) : (
+            {aiResult?.now ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {aiResult.now.map((item: any, i: number) => (
+                  <AiEventCard key={`ai-now-${i}`} item={item} status="NOW" />
+                ))}
+              </div>
+            ) : nowEvents.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {nowEvents.map((evt) => (
                   <LifeEventCard key={evt.id} event={evt} />
                 ))}
               </div>
+            ) : (
+              <p className="text-body-sm text-muted-foreground py-4">No active requirements at this moment.</p>
             )}
           </div>
         )}
@@ -159,16 +243,22 @@ export function SmartTimeline({ initialProfile }: { initialProfile?: UserProfile
         {activeTab === "next" && (
           <div className="space-y-4">
             <h3 className="text-h4 font-extrabold text-foreground flex items-center gap-2">
-              <Clock size={18} className="text-accent" /> Upcoming Milestones
+              <Clock size={18} className="text-accent" /> Upcoming Milestones (1–3 Years)
             </h3>
-            {nextEvents.length === 0 ? (
-              <p className="text-body-sm text-muted-foreground py-4">No upcoming milestones scheduled in the immediate future.</p>
-            ) : (
+            {aiResult?.next ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {aiResult.next.map((item: any, i: number) => (
+                  <AiEventCard key={`ai-next-${i}`} item={item} status="UPCOMING" />
+                ))}
+              </div>
+            ) : nextEvents.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {nextEvents.map((evt) => (
                   <LifeEventCard key={evt.id} event={evt} />
                 ))}
               </div>
+            ) : (
+              <p className="text-body-sm text-muted-foreground py-4">No upcoming milestones scheduled in the near future.</p>
             )}
           </div>
         )}
@@ -176,16 +266,22 @@ export function SmartTimeline({ initialProfile }: { initialProfile?: UserProfile
         {activeTab === "later" && (
           <div className="space-y-4">
             <h3 className="text-h4 font-extrabold text-foreground flex items-center gap-2">
-              <Calendar size={18} className="text-muted-foreground" /> Future Life Stage Events
+              <Calendar size={18} className="text-muted-foreground" /> Future Life Stage Events (3+ Years)
             </h3>
-            {laterEvents.length === 0 ? (
-              <p className="text-body-sm text-muted-foreground py-4">Future milestones will unlock as your life stage progresses.</p>
-            ) : (
+            {aiResult?.later ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {aiResult.later.map((item: any, i: number) => (
+                  <AiEventCard key={`ai-later-${i}`} item={item} status="LATER" />
+                ))}
+              </div>
+            ) : laterEvents.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {laterEvents.map((evt) => (
                   <LifeEventCard key={evt.id} event={evt} />
                 ))}
               </div>
+            ) : (
+              <p className="text-body-sm text-muted-foreground py-4">Future milestones will unlock as your life stage progresses.</p>
             )}
           </div>
         )}
@@ -237,13 +333,72 @@ function LifeEventCard({ event }: { event: LifeEvent }) {
       {/* Actions */}
       {event.actionUrl && (
         <div className="pt-2">
-          <Link
-            href={event.actionUrl as any}
-            className="btn btn-outline btn-xs gap-1 font-bold"
-          >
-            <span>{event.actionLabel || "Explore"}</span>
-            <ArrowRight size={12} />
-          </Link>
+          {event.actionUrl.startsWith("http://") || event.actionUrl.startsWith("https://") ? (
+            <a
+              href={event.actionUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn btn-outline btn-xs gap-1.5 font-bold hover:btn-primary inline-flex items-center"
+            >
+              <span>{event.actionLabel || "Apply on Official Government Portal"}</span>
+              <ExternalLink size={12} />
+            </a>
+          ) : (
+            <Link
+              href={event.actionUrl as any}
+              className="btn btn-outline btn-xs gap-1 font-bold inline-flex items-center"
+            >
+              <span>{event.actionLabel || "Explore"}</span>
+              <ArrowRight size={12} />
+            </Link>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AiEventCard({ item, status }: { item: any; status: string }) {
+  const url = item.actionUrl || "";
+  const isExternal = url.startsWith("http://") || url.startsWith("https://");
+
+  return (
+    <div className="p-5 rounded-2xl border border-accent/40 bg-accent-subtle/20 space-y-3 shadow-xs relative overflow-hidden">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <span className="badge badge-accent font-bold text-[10px] uppercase flex items-center gap-1">
+          <Sparkles size={10} /> {status} (AI MATCH)
+        </span>
+        <span className="text-[10px] font-bold text-accent uppercase tracking-wider">
+          {item.category || "AI Insight"}
+        </span>
+      </div>
+
+      <div className="space-y-1">
+        <h4 className="text-h4 font-bold text-foreground">{item.title}</h4>
+        <p className="text-body-sm text-muted-foreground leading-relaxed">{item.description}</p>
+      </div>
+
+      {url && (
+        <div className="pt-2">
+          {isExternal ? (
+            <a
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn btn-outline btn-xs gap-1.5 font-bold border-accent/40 hover:btn-primary inline-flex items-center"
+            >
+              <span>{item.actionLabel || "Apply on Official Government Portal"}</span>
+              <ExternalLink size={12} />
+            </a>
+          ) : (
+            <Link
+              href={url as any}
+              className="btn btn-outline btn-xs gap-1 font-bold border-accent/40 hover:btn-primary inline-flex items-center"
+            >
+              <span>{item.actionLabel || "Explore Opportunity"}</span>
+              <ArrowRight size={12} />
+            </Link>
+          )}
         </div>
       )}
     </div>

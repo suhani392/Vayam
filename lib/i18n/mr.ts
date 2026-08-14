@@ -11,11 +11,11 @@ import type { TranslationMap } from "./types";
 export const mr: TranslationMap = {
   // Navigation
   "nav.home": "होम",
-  "nav.explore": "एक्सप्लोर",
-  "nav.education": "शिक्षण मार्गदर्शक",
+  "nav.explore": "योजना एक्सप्लोर करा",
+  "nav.education": "शिक्षण मार्ग",
   "nav.rights": "आपले हक्क जाणून घ्या",
-  "nav.timeline": "टाइमलाइन",
-  "nav.assistant": "सहाय्यक",
+  "nav.timeline": "सिव्हिक टाइमलाइन",
+  "nav.assistant": "वयम् सहाय्यक",
   "nav.profile": "प्रोफाइल",
   "nav.section": "सिव्हिक इंटेलिजन्स",
   "nav.lifestyle": "लाइफस्टाइल प्लॅनर",

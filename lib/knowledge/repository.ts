@@ -44,14 +44,39 @@ export class KnowledgeRepository {
             minAge: item.metadata?.min_age,
             maxAge: item.metadata?.max_age,
             maxAnnualIncomeInr: item.metadata?.max_annual_income,
+            eligibleGenders: item.metadata?.eligible_genders || (item.metadata?.gender ? [item.metadata.gender] : item.title.toLowerCase().includes("sukanya") ? ["female"] : undefined),
+            eligibleEducationLevels: item.metadata?.eligible_education_levels,
+            eligibleEmploymentStatuses: item.metadata?.eligible_employment_statuses,
+            targetStateCodes: item.metadata?.target_state_codes,
+            eligibilitySummary: item.eligibility_summary || item.metadata?.eligibility_summary,
             benefitAmountInr: item.metadata?.benefit_amount_inr,
-            benefits: item.eligibility_summary ? [item.eligibility_summary] : [],
+            benefits: item.eligibility_summary ? [item.eligibility_summary] : item.metadata?.benefits || [],
             application: {
-              method: "ONLINE",
+              method: item.metadata?.application_method || "ONLINE",
               officialUrl: item.action_url || "#",
               portalName: item.action_label || "Official Portal",
-              steps: [],
-              documentsRequired: [],
+              steps: Array.isArray(item.metadata?.application_steps) && item.metadata.application_steps.length > 0
+                ? item.metadata.application_steps
+                : Array.isArray(item.application_steps) && item.application_steps.length > 0
+                ? item.application_steps
+                : [
+                    `Visit official ${item.authority_name || "Government"} portal or authorized service center.`,
+                    "Check and verify eligibility criteria and download prescribed application form.",
+                    "Gather required identity, residence, and income documentation.",
+                    "Submit completed application along with verified documents.",
+                    "Track application status using reference ID provided upon submission."
+                  ],
+              documentsRequired: Array.isArray(item.required_documents) && item.required_documents.length > 0
+                ? item.required_documents.map((d: any, idx: number) => ({
+                    id: d.id || `doc-${idx}`,
+                    name: typeof d === "string" ? d : d.name || "Identity Document",
+                    required: typeof d === "object" ? d.required !== false : true,
+                  }))
+                : [
+                    { id: "doc-1", name: "Aadhaar Card / Official Photo Identity Proof", required: true },
+                    { id: "doc-2", name: "Proof of Address / Residence Certificate", required: true },
+                    { id: "doc-3", name: "Income Certificate / Caste Certificate (If applicable)", required: false },
+                  ],
             },
             timing: {
               deadline: item.deadline || null,

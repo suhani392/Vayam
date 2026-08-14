@@ -9,11 +9,11 @@ import type { TranslationMap } from "./types";
 export const en: TranslationMap = {
   // Navigation
   "nav.home": "Home",
-  "nav.explore": "Explore",
-  "nav.education": "Education",
+  "nav.explore": "Explore Schemes",
+  "nav.education": "Education Routes",
   "nav.rights": "Know Your Rights",
-  "nav.timeline": "Timeline",
-  "nav.assistant": "Assistant",
+  "nav.timeline": "Civic Timeline",
+  "nav.assistant": "Vayam Assistant",
   "nav.profile": "Profile",
   "nav.section": "Civic Intelligence",
   "nav.lifestyle": "Lifestyle Planner",

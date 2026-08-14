@@ -113,6 +113,7 @@ export interface KnowledgeRecord {
   eligibleEducationLevels?: EducationLevel[];
   eligibleEmploymentStatuses?: EmploymentStatus[];
   maxAnnualIncomeInr?: number;
+  eligibilitySummary?: string;
 
   benefits: string[];
   benefitAmountInr?: number;

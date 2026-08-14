@@ -216,6 +216,15 @@ export default function KnowledgeDetailPage({ params }: { params: Promise<{ id: 
                   </div>
                 ) : null}
 
+                {record.eligibleGenders && record.eligibleGenders.length > 0 && (
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-surface-secondary/60 text-body-sm">
+                    <span className="text-muted-foreground font-medium">Gender Requirement:</span>
+                    <span className="font-bold text-accent capitalize">
+                      {record.eligibleGenders.map((g) => g.replace(/_/g, " ")).join(", ")} Only
+                    </span>
+                  </div>
+                )}
+
                 {record.maxAnnualIncomeInr && (
                   <div className="flex items-center justify-between p-3 rounded-xl bg-surface-secondary/60 text-body-sm">
                     <span className="text-muted-foreground font-medium">Annual Income Ceiling:</span>
@@ -223,7 +232,7 @@ export default function KnowledgeDetailPage({ params }: { params: Promise<{ id: 
                       Up to ₹{record.maxAnnualIncomeInr.toLocaleString("en-IN")}/year
                     </span>
                   </div>
-                ) }
+                )}
 
                 {record.eligibleEducationLevels && (
                   <div className="flex items-start justify-between p-3 rounded-xl bg-surface-secondary/60 text-body-sm gap-2">
@@ -235,6 +244,17 @@ export default function KnowledgeDetailPage({ params }: { params: Promise<{ id: 
                         </span>
                       ))}
                     </div>
+                  </div>
+                )}
+
+                {record.eligibilitySummary && (
+                  <div className="p-3.5 rounded-xl bg-surface-secondary/60 text-body-sm space-y-1">
+                    <span className="text-muted-foreground font-semibold block text-caption uppercase tracking-wider">
+                      Detailed Eligibility Criteria:
+                    </span>
+                    <p className="text-foreground font-medium leading-relaxed">
+                      {record.eligibilitySummary}
+                    </p>
                   </div>
                 )}
               </div>
@@ -323,27 +343,41 @@ export default function KnowledgeDetailPage({ params }: { params: Promise<{ id: 
                 <Compass size={18} className="text-accent" /> How to Apply
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-4">
               <div className="flex items-center justify-between text-body-sm p-3 rounded-xl bg-surface-secondary/60">
                 <span className="text-muted-foreground font-medium">Application Method:</span>
                 <span className="badge badge-accent font-bold uppercase">{record.application.method}</span>
               </div>
 
               {record.application.steps && record.application.steps.length > 0 && (
-                <div className="space-y-2 pt-2">
+                <div className="space-y-3 pt-1">
                   <span className="text-caption font-bold text-muted-foreground uppercase tracking-wider block">
-                    Application Steps:
+                    Step-by-Step Application Guide:
                   </span>
-                  <ol className="space-y-2 text-body-sm">
+                  <ol className="space-y-3 text-body-sm">
                     {record.application.steps.map((step, idx) => (
-                      <li key={idx} className="flex items-start gap-3">
-                        <span className="w-6 h-6 rounded-full bg-accent/15 text-accent font-bold flex items-center justify-center shrink-0 text-caption">
+                      <li key={idx} className="flex items-start gap-3 p-3 rounded-xl bg-surface-secondary/40 border border-border-subtle/40">
+                        <span className="w-6 h-6 rounded-full bg-accent/20 text-accent font-bold flex items-center justify-center shrink-0 text-caption mt-0.5">
                           {idx + 1}
                         </span>
-                        <span className="text-foreground leading-snug pt-0.5">{step}</span>
+                        <span className="text-foreground leading-relaxed pt-0.5">{step}</span>
                       </li>
                     ))}
                   </ol>
+                </div>
+              )}
+
+              {record.application.officialUrl && record.application.officialUrl !== "#" && (
+                <div className="pt-2">
+                  <a
+                    href={record.application.officialUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn btn-primary w-full rounded-xl gap-2 font-bold justify-center"
+                  >
+                    <span>Open Official Application Portal</span>
+                    <ExternalLink size={16} />
+                  </a>
                 </div>
               )}
             </CardContent>
