@@ -10,7 +10,7 @@
  *    If profile details are missing, notifies user to complete their profile.
  */
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { PageContainer } from "@/components/layout/page-container";
 import { KnowledgeCard } from "@/components/knowledge/knowledge-card";
@@ -20,9 +20,10 @@ import { useUserProfile } from "@/hooks/useUserProfile";
 import { useAuth } from "@/components/auth/AuthContext";
 import { getPersonalizedCivicState } from "@/lib/core/civic-state";
 import { getPersonalizedKnowledge } from "@/lib/knowledge/search";
+import { KnowledgeRepository } from "@/lib/knowledge/repository";
 import type { UserProfile } from "@/lib/core/types";
 import {
-  Sparkles,
+  HeartHandshake,
   Compass,
   Bot,
   Clock,
@@ -36,6 +37,7 @@ import {
   Calendar,
   MapPin,
   GraduationCap,
+  Scale,
   Briefcase,
   IndianRupee,
   Mail,
@@ -45,7 +47,7 @@ import {
 
 export default function HomePage() {
   const { lang, t } = useLanguage();
-  const { isAuthenticated, signOut, dbProfile, user } = useAuth();
+  const { isAuthenticated, loading, signOut, dbProfile, user } = useAuth();
   const {
     profile,
     loaded,
@@ -54,7 +56,40 @@ export default function HomePage() {
     hasValidProfile,
   } = useUserProfile();
 
-  // 1. Unauthenticated State: Show About Vayam landing page first!
+  const [dbSynced, setDbSynced] = useState(false);
+
+  useEffect(() => {
+    KnowledgeRepository.syncWithDatabase().then(() => {
+      setDbSynced(true);
+    });
+  }, []);
+
+  const currentProfile = profile as UserProfile;
+  const personalizedRecords = React.useMemo(() => {
+    if (!profile) return [];
+    return getPersonalizedKnowledge(currentProfile);
+  }, [profile, dbSynced]);
+
+  const civicState = React.useMemo(() => {
+    if (!profile) return null;
+    return getPersonalizedCivicState(currentProfile);
+  }, [profile, dbSynced]);
+
+  // 1. Loading State: Wait for initial session check without flashing landing page
+  if (loading) {
+    return (
+      <PageContainer width="wide">
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="flex flex-col items-center gap-3">
+            <div className="h-8 w-8 rounded-full border-2 border-accent border-t-transparent animate-spin" />
+            <p className="text-body-sm text-muted-foreground font-medium">Loading your profile...</p>
+          </div>
+        </div>
+      </PageContainer>
+    );
+  }
+
+  // 2. Unauthenticated State: Show About Vayam landing page
   if (!isAuthenticated) {
     return (
       <PageContainer width="wide">
@@ -62,11 +97,6 @@ export default function HomePage() {
       </PageContainer>
     );
   }
-
-  // 2. Authenticated State: Use actual user profile details
-  const currentProfile = profile as UserProfile;
-  const civicState = profile && hasValidProfile ? getPersonalizedCivicState(currentProfile) : null;
-  const personalizedRecords = profile && hasValidProfile ? getPersonalizedKnowledge(currentProfile) : [];
 
   const primaryProfileLabel =
     dbProfile?.full_name || profile?.name?.trim() || user?.email?.split("@")[0] || "Citizen Profile";
@@ -81,16 +111,13 @@ export default function HomePage() {
 
   return (
     <PageContainer width="wide">
-      <div className="space-y-10 pb-12">
+      <div className="space-y-24 pb-24">
         {/* ── 1. Welcome Banner ── */}
         <section className="relative overflow-hidden p-8 sm:p-10 rounded-3xl bg-gradient-to-br from-accent/15 via-card to-accent-subtle/30 border border-accent/30 shadow-md space-y-6">
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="badge badge-saffron font-bold text-caption uppercase tracking-wider flex items-center gap-1">
-                <Sparkles size={12} /> Authenticated Citizen Dashboard
-              </span>
-              <span className="badge badge-accent text-[10px] uppercase font-bold">
-                Supabase Account Verified
+                <HeartHandshake size={14} /> Vayam Welcomes You!
               </span>
             </div>
 
@@ -202,9 +229,6 @@ export default function HomePage() {
                   <span className="badge badge-warning text-[11px] font-bold">Incomplete Profile</span>
                 )}
               </div>
-              <p className="text-caption text-muted-foreground mt-1">
-                Stored in Supabase database (`profiles` table). No hardcoded or dummy values.
-              </p>
             </div>
 
             <Link href="/profile" className="btn btn-outline btn-xs font-bold gap-1">
@@ -287,7 +311,7 @@ export default function HomePage() {
                 <IndianRupee size={14} className="text-accent" /> Annual Income
               </div>
               <p className="text-body-sm font-bold text-foreground truncate">
-                {currentProfile.annualIncomeInr
+                {currentProfile.annualIncomeInr !== undefined && currentProfile.annualIncomeInr !== null
                   ? `₹${currentProfile.annualIncomeInr.toLocaleString("en-IN")}`
                   : "Optional / Not set"}
               </p>
@@ -305,8 +329,75 @@ export default function HomePage() {
           </div>
         </section>
 
+        {/* ── 3.5. First-Class Capabilities: Education Pathfinder & Know Your Rights ── */}
+        <section className="space-y-6 pt-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Education Pathfinder Card */}
+            <div className="group relative overflow-hidden rounded-3xl bg-card border border-border-subtle hover:border-accent/40 p-8 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="w-12 h-12 rounded-2xl bg-accent-subtle/80 text-accent flex items-center justify-center font-bold">
+                    <GraduationCap size={24} />
+                  </div>
+                  <span className="badge badge-saffron text-[11px]">For the Youth</span>
+                </div>
+                <div>
+                  <h3 className="text-h3 font-bold text-foreground group-hover:text-accent transition-colors flex items-center gap-2">
+                    Plan your future
+                  </h3>
+                  <p className="text-body-sm text-muted-foreground mt-2 leading-relaxed">
+                    Tell Vayam what profession you want to achieve. Discover realistic educational pathways, entrance exams, degree routes, and government scholarships from where you are today.
+                  </p>
+                </div>
+              </div>
+
+              <div className="pt-6 mt-6 border-t border-border-subtle flex items-center justify-between">
+                <span className="text-caption font-bold text-accent font-mono uppercase tracking-wider">Education Pathfinder</span>
+                <Link
+                  href={"/education" as any}
+                  className="btn btn-outline btn-sm rounded-xl gap-2 font-bold group-hover:scale-105 transition-all text-foreground hover:text-foreground hover:bg-accent/20 border-accent/40"
+                >
+                  <span>Explore Pathways</span>
+                  <ArrowRight size={16} />
+                </Link>
+              </div>
+            </div>
+
+            {/* Know Your Rights Card */}
+            <div className="group relative overflow-hidden rounded-3xl bg-card border border-border-subtle hover:border-emerald-500/40 p-8 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold">
+                    <Scale size={24} />
+                  </div>
+                  <span className="badge badge-emerald text-[11px]">Civic Rights</span>
+                </div>
+                <div>
+                  <h3 className="text-h3 font-bold text-foreground group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors flex items-center gap-2">
+                    Know your rights
+                  </h3>
+                  <p className="text-body-sm text-muted-foreground mt-2 leading-relaxed">
+                    Describe any real-life situation in simple language. Understand relevant legal protections, evidence to preserve, practical options, and official helpline resources.
+                  </p>
+                </div>
+              </div>
+
+              <div className="pt-6 mt-6 border-t border-border-subtle flex items-center justify-between">
+                <span className="text-caption font-bold text-emerald-600 dark:text-emerald-400 font-mono uppercase tracking-wider">Legal Guidance</span>
+                <Link
+                  href={"/rights" as any}
+                  className="btn btn-outline btn-sm rounded-xl gap-2 font-bold group-hover:scale-105 transition-all text-foreground hover:text-foreground hover:bg-emerald-500/20 border-emerald-500/40"
+                >
+                  <span>Check Your Rights</span>
+                  <ArrowRight size={16} />
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* ── 4. NOW / NEXT / LATER Personalized Recommendations ── */}
-        <section className="space-y-6">
+        <section className="pt-10 mt-8 space-y-6">
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div>
               <h2 className="text-h2 font-extrabold text-foreground">{t("home.recommended")}</h2>
@@ -331,6 +422,7 @@ export default function HomePage() {
                       key={item.record.id}
                       record={item.record}
                       personalized={item.recommendation}
+                      showWhyItMatters={false}
                     />
                   ))}
                 </div>
@@ -376,8 +468,8 @@ export default function HomePage() {
             </p>
           </div>
           <div className="pt-2">
-            <Link href="/dev-sources" className="btn btn-outline btn-xs font-bold gap-1">
-              <span>Inspect Source Verification Panel</span>
+            <Link href="/dev-sources" target="_blank" rel="noopener noreferrer" className="btn btn-outline btn-xs font-bold gap-1">
+              <span className="pt-[2px]">Inspect Source Verification Panel</span>
               <ExternalLink size={12} />
             </Link>
           </div>

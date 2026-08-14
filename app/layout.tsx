@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, Noto_Sans_Devanagari, Geist_Mono } from "next/font/google";
+import localFont from "next/font/local";
+import { Noto_Sans_Devanagari, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { APP_CONFIG } from "@/config/app";
 import { ThemeProvider } from "@/components/ui/theme-provider";
@@ -9,12 +10,25 @@ import { LanguageProvider } from "@/lib/i18n/language-context";
 import { AuthProvider } from "@/components/auth/AuthContext";
 import { AuthModal } from "@/components/auth/auth-modal";
 
-const plusJakartaSans = Plus_Jakarta_Sans({
+const josefinSans = localFont({
+  src: [
+    { path: "./fonts/JosefinSans-Thin.ttf", weight: "100", style: "normal" },
+    { path: "./fonts/JosefinSans-ThinItalic.ttf", weight: "100", style: "italic" },
+    { path: "./fonts/JosefinSans-ExtraLight.ttf", weight: "200", style: "normal" },
+    { path: "./fonts/JosefinSans-ExtraLightItalic.ttf", weight: "200", style: "italic" },
+    { path: "./fonts/JosefinSans-Light.ttf", weight: "300", style: "normal" },
+    { path: "./fonts/JosefinSans-LightItalic.ttf", weight: "300", style: "italic" },
+    { path: "./fonts/JosefinSans-Regular.ttf", weight: "400", style: "normal" },
+    { path: "./fonts/JosefinSans-Italic.ttf", weight: "400", style: "italic" },
+    { path: "./fonts/JosefinSans-Medium.ttf", weight: "500", style: "normal" },
+    { path: "./fonts/JosefinSans-MediumItalic.ttf", weight: "500", style: "italic" },
+    { path: "./fonts/JosefinSans-SemiBold.ttf", weight: "600", style: "normal" },
+    { path: "./fonts/JosefinSans-SemiBoldItalic.ttf", weight: "600", style: "italic" },
+    { path: "./fonts/JosefinSans-Bold.ttf", weight: "700", style: "normal" },
+    { path: "./fonts/JosefinSans-BoldItalic.ttf", weight: "700", style: "italic" },
+  ],
   variable: "--font-vayam-sans",
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800"],
   display: "swap",
-  preload: true,
 });
 
 const notoSansDevanagari = Noto_Sans_Devanagari({
@@ -75,7 +89,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       suppressHydrationWarning
       data-scroll-behavior="smooth"
-      className={`${plusJakartaSans.variable} ${notoSansDevanagari.variable} ${geistMono.variable} h-full`}
+      className={`${josefinSans.variable} ${notoSansDevanagari.variable} ${geistMono.variable} h-full`}
     >
       <head>
         <link rel="icon" href="/assets/Vayam_Tab_Logo.png?v=3" type="image/png" />

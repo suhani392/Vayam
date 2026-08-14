@@ -15,6 +15,7 @@ export interface DropdownProps {
   children: React.ReactNode;
   align?: "left" | "right";
   className?: string;
+  closeOnClickInside?: boolean;
 }
 
 export function Dropdown({
@@ -22,6 +23,7 @@ export function Dropdown({
   children,
   align = "left",
   className,
+  closeOnClickInside = true,
 }: DropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -80,7 +82,7 @@ export function Dropdown({
             className
           )}
         >
-          <div onClick={() => setIsOpen(false)}>{children}</div>
+          <div onClick={() => closeOnClickInside && setIsOpen(false)}>{children}</div>
         </div>
       )}
     </div>

@@ -1269,5 +1269,69 @@ on conflict (code) do nothing;
 
 
 -- ============================================================
+-- 43. EDUCATION PATHFINDER TABLES
+-- ============================================================
+
+create table if not exists education_careers (
+    id uuid primary key default gen_random_uuid(),
+    slug varchar(100) unique not null,
+    title varchar(200) not null,
+    category varchar(100) not null,
+    short_description text,
+    icon varchar(100),
+    demand_level varchar(50),
+    avg_starting_salary_inr numeric(15,2),
+    created_at timestamptz default now()
+);
+
+create table if not exists education_pathways (
+    id uuid primary key default gen_random_uuid(),
+    career_id uuid references education_careers(id) on delete cascade,
+    path_code varchar(50) not null,
+    title varchar(250) not null,
+    starting_education_level varchar(100) not null,
+    required_stream varchar(100),
+    degree_qualification varchar(200) not null,
+    duration_years numeric(3,1) not null,
+    entrance_exams text[] default '{}',
+    key_skills text[] default '{}',
+    steps jsonb default '[]'::jsonb,
+    alternative_routes text[] default '{}',
+    official_sources jsonb default '[]'::jsonb,
+    created_at timestamptz default now()
+);
+
+-- ============================================================
+-- 44. KNOW YOUR RIGHTS TABLES
+-- ============================================================
+
+create table if not exists legal_topics (
+    id uuid primary key default gen_random_uuid(),
+    slug varchar(100) unique not null,
+    title varchar(250) not null,
+    category varchar(100) not null,
+    plain_language_summary text not null,
+    applicable_acts text[] default '{}',
+    created_at timestamptz default now()
+);
+
+create table if not exists legal_situations (
+    id uuid primary key default gen_random_uuid(),
+    topic_id uuid references legal_topics(id) on delete cascade,
+    title varchar(300) not null,
+    situation_patterns text[] default '{}',
+    legal_considerations text[] default '{}',
+    rights_granted text[] default '{}',
+    evidence_to_preserve text[] default '{}',
+    practical_steps jsonb default '[]'::jsonb,
+    official_helplines jsonb default '[]'::jsonb,
+    official_sources jsonb default '[]'::jsonb,
+    last_verified timestamptz default now(),
+    disclaimer text,
+    created_at timestamptz default now()
+);
+
+-- ============================================================
 -- DONE
 -- ============================================================
+

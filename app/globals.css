@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
 /* ==========================================================================
    VAYAM DESIGN SYSTEM — Phase 02 (Refined Visual Identity)
@@ -378,8 +379,8 @@
   --color-ring: var(--ring);
 
   /* Typography Fallback Chains */
-  --font-sans:        'Vayam Local Font', var(--font-vayam-sans), 'Plus Jakarta Sans', var(--font-vayam-devanagari), 'Noto Sans Devanagari', ui-sans-serif, system-ui, sans-serif;
-  --font-vayam:       'Vayam Local Font', var(--font-vayam-sans), 'Plus Jakarta Sans', var(--font-vayam-devanagari), 'Noto Sans Devanagari', ui-sans-serif, system-ui, sans-serif;
+  --font-sans:        'Vayam Local Font', var(--font-vayam-sans), 'Josefin Sans', var(--font-vayam-devanagari), 'Noto Sans Devanagari', ui-sans-serif, system-ui, sans-serif;
+  --font-vayam:       'Vayam Local Font', var(--font-vayam-sans), 'Josefin Sans', var(--font-vayam-devanagari), 'Noto Sans Devanagari', ui-sans-serif, system-ui, sans-serif;
   --font-devanagari:  'Vayam Local Devanagari', var(--font-vayam-devanagari), 'Noto Sans Devanagari', 'Vayam Local Font', var(--font-vayam-sans), ui-sans-serif, sans-serif;
   --font-mono:        var(--font-vayam-mono), ui-monospace, monospace;
 }
@@ -434,6 +435,12 @@ body {
 ::selection {
   background-color: var(--accent-subtle);
   color: var(--accent);
+}
+
+/* Hide native browser password reveal icons */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
 }
 
 .skip-to-content {

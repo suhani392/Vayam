@@ -33,7 +33,7 @@ export function runTimelineTests() {
   assert(bday18A !== undefined, "TEST 1: 17yo Profile A generates 18th Birthday event");
   assert(bday18A?.status === "UPCOMING", "TEST 1: 18th Birthday event status is UPCOMING");
   assert(typeof bday18A?.daysUntil === "number" && bday18A.daysUntil > 0, "TEST 1: 18th Birthday has deterministic positive daysUntil");
-  assert(Boolean(bday18A?.relatedKnowledgeIds.includes("nvsp-voter-portal")), "TEST 1: 18th Birthday event links to Voter ID portal record");
+  assert(Boolean(bday18A?.relatedKnowledgeIds.includes("eci-voter-form6-service")), "TEST 1: 18th Birthday event links to Voter ID portal record");
 
   // ── TEST 2: 18th Birthday Today (Born 2008-08-09 on 2026-08-09) ──
   const profile18Today: UserProfile = {

@@ -9,28 +9,13 @@
 
 import React from "react";
 import { PageContainer } from "@/components/layout/page-container";
-import { PageHeader } from "@/components/layout/navigation";
 import { VayamAssistant } from "@/components/assistant/vayam-assistant";
-import { Sparkles } from "lucide-react";
-import { useLanguage } from "@/hooks/useLanguage";
 
 export default function AssistantPage() {
-  const { t } = useLanguage();
-
   return (
-    <PageContainer width="wide">
-      <PageHeader
-        badge={
-          <span className="badge badge-accent gap-1">
-            <Sparkles size={12} /> {t("nav.assistant")}
-          </span>
-        }
-        title={t("assistant.greeting")}
-        description={t("assistant.subtitle")}
-      />
-
-      <div className="h-[calc(100vh-240px)] min-h-[600px] mb-8">
-        <VayamAssistant isFullPage={true} />
+    <PageContainer width="wide" className="h-[calc(100vh-70px)] !py-3 !space-y-0 flex flex-col overflow-hidden">
+      <div className="flex-1 min-h-0 h-full flex flex-col">
+        <VayamAssistant className="flex-1 min-h-0" isFullPage={true} />
       </div>
     </PageContainer>
   );

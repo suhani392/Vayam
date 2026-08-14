@@ -34,7 +34,8 @@ export class BrowserSpeechToText implements SpeechToTextProvider {
         (window as any).webkitSpeechRecognition;
 
       this.recognition = new SpeechRecognition();
-      this.recognition.lang = VOICE_LOCALE_MAP[lang] || "en-IN";
+      // Optimal speech recognition locale: mr-IN for Marathi, hi-IN for Hindi/Indian dialects
+      this.recognition.lang = lang === "mr" ? "mr-IN" : "hi-IN";
       this.recognition.interimResults = false;
       this.recognition.maxAlternatives = 1;
       this.recognition.continuous = false;

@@ -35,7 +35,7 @@ export function AboutVayamLanding() {
   const { setAuthModalOpen, signInDemo } = useAuth();
 
   return (
-    <div className="space-y-16 pb-20 select-none">
+    <div className="space-y-32 pb-32 select-none">
       {/* ── 1. Hero Section ── */}
       <section className="relative overflow-hidden p-8 sm:p-14 rounded-3xl bg-gradient-to-br from-accent/20 via-card to-accent-subtle/40 border border-accent/30 shadow-xl space-y-8 text-center sm:text-left">
         <div className="absolute top-0 right-0 -mt-10 -mr-10 w-80 h-80 rounded-full bg-accent/10 blur-3xl pointer-events-none" />
@@ -44,16 +44,23 @@ export function AboutVayamLanding() {
           <img
             src="/assets/Vayam_Icon.png?v=2"
             alt="Vayam Icon Logo"
-            className="h-12 w-auto object-contain"
+            className="h-12 w-auto object-contain dark:hidden"
           />
           <img
             src="/assets/Vayam_Text.png?v=2"
             alt="Vayam"
-            className="h-8 w-auto object-contain"
+            className="h-8 w-auto object-contain dark:hidden"
           />
-          <span className="badge badge-saffron font-bold text-caption uppercase tracking-wider flex items-center gap-1.5 px-3 py-1.5 shadow-2xs ml-2">
-            <Sparkles size={14} /> Civic Intelligence
-          </span>
+          <img
+            src="/assets/Vayam_Dark_Icon.png?v=2"
+            alt="Vayam Icon Dark"
+            className="h-12 w-auto object-contain hidden dark:block"
+          />
+          <img
+            src="/assets/Vayam_Dark_Text.png?v=2"
+            alt="Vayam Dark"
+            className="h-8 w-auto object-contain hidden dark:block"
+          />
         </div>
 
         <div className="space-y-4 max-w-4xl">
@@ -72,7 +79,7 @@ export function AboutVayamLanding() {
             className="btn btn-primary px-8 py-4 rounded-2xl gap-3 text-body font-extrabold shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all cursor-pointer"
           >
             <UserCheck size={20} />
-            <span>Sign In / Create Account with Supabase</span>
+            <span>Sign In / Create Account</span>
             <ArrowRight size={18} />
           </button>
         </div>
@@ -115,7 +122,7 @@ export function AboutVayamLanding() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="p-8 rounded-3xl bg-card border border-border-subtle space-y-4 shadow-sm hover:border-destructive/30 transition-all">
             <div className="w-12 h-12 rounded-2xl bg-destructive/15 text-destructive flex items-center justify-center font-black text-h3">
-              ✕
+              <span className="pt-[2px]">✕</span>
             </div>
             <h3 className="text-h3 font-bold text-foreground">The Current Reality</h3>
             <ul className="space-y-3 text-body-sm text-muted-foreground">
@@ -140,7 +147,7 @@ export function AboutVayamLanding() {
 
           <div className="p-8 rounded-3xl bg-gradient-to-br from-card via-card to-accent/5 border border-accent/30 space-y-4 shadow-sm hover:border-accent/50 transition-all">
             <div className="w-12 h-12 rounded-2xl bg-accent/15 text-accent flex items-center justify-center font-black text-h3">
-              ✓
+              <span className="pt-[2px]">✓</span>
             </div>
             <h3 className="text-h3 font-bold text-foreground">The Vayam Approach</h3>
             <ul className="space-y-3 text-body-sm text-foreground font-medium">
@@ -312,10 +319,12 @@ export function AboutVayamLanding() {
         <div>
           <Link
             href="/dev-sources"
+            target="_blank"
+            rel="noopener noreferrer"
             className="btn btn-outline btn-sm font-bold gap-2 hover:btn-primary"
           >
             <FileCheck2 size={16} />
-            <span>Inspect Verified Source Registry</span>
+            <span className="pt-[2px]">Inspect Verified Source Registry</span>
             <ExternalLink size={14} />
           </Link>
         </div>
@@ -325,14 +334,14 @@ export function AboutVayamLanding() {
       <section className="p-10 rounded-3xl bg-gradient-to-r from-accent/20 via-card to-accent-subtle/30 border border-accent/40 text-center space-y-6 shadow-lg">
         <h2 className="text-h1 font-black text-foreground">Ready to discover what you are eligible for?</h2>
         <p className="text-body text-muted-foreground max-w-xl mx-auto">
-          Sign in or create an account with Supabase in less than 30 seconds to get your personalized civic timeline.
+          Sign in or create an account in less than 30 seconds to get your personalized civic timeline.
         </p>
         <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
           <button
             onClick={() => setAuthModalOpen(true)}
             className="btn btn-primary px-8 py-4 rounded-2xl font-bold gap-2 text-body shadow-md cursor-pointer"
           >
-            <span>Sign In / Register Now</span>
+            <span className="pt-[2px]">Sign In / Register Now</span>
             <ArrowRight size={18} />
           </button>
         </div>

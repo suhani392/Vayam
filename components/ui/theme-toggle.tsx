@@ -15,14 +15,14 @@ import { cn } from "@/lib/utils/cn";
 
 const NEXT_THEME: Record<ThemePreference, ThemePreference> = {
   light:  "dark",
-  dark:   "system",
-  system: "light",
+  dark:   "light",
+  system: "dark",
 };
 
 const LABELS: Record<ThemePreference, string> = {
   light:  "Switch to dark mode",
-  dark:   "Switch to system theme",
-  system: "Switch to light mode",
+  dark:   "Switch to light mode",
+  system: "Switch to dark mode",
 };
 
 const ICON_SIZE = 18;

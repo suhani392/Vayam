@@ -15,7 +15,7 @@ import React from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils/cn";
 import { Badge, StatusBadge, CategoryBadge, SourceBadge } from "@/components/ui/badge";
-import { ArrowRight, Sparkles, Building2, CheckCircle2, AlertCircle, HelpCircle, Info } from "lucide-react";
+import { ArrowRight, Sparkles, Building2, CheckCircle2, XCircle, Clock, AlertCircle, HelpCircle, Info } from "lucide-react";
 import type { KnowledgeRecord } from "@/lib/knowledge/types";
 import type { Recommendation } from "@/lib/core/types";
 import { getSourceDisplayMetadata } from "@/lib/knowledge/source/validator";
@@ -24,9 +24,10 @@ export interface KnowledgeCardProps {
   record: KnowledgeRecord;
   personalized?: Recommendation | null;
   className?: string;
+  showWhyItMatters?: boolean;
 }
 
-export function KnowledgeCard({ record, personalized, className }: KnowledgeCardProps) {
+export function KnowledgeCard({ record, personalized, className, showWhyItMatters = true }: KnowledgeCardProps) {
   const displaySource = getSourceDisplayMetadata(record);
 
   // Eligibility Status mapping from Phase 5 Core
@@ -35,16 +36,37 @@ export function KnowledgeCard({ record, personalized, className }: KnowledgeCard
   const mapEligibilityStatus = (status?: string) => {
     switch (status) {
       case "LIKELY_ELIGIBLE":
-        return { label: "✓ Likely Eligible", variant: "success" as const };
+        return {
+          label: "Likely Eligible",
+          icon: <CheckCircle2 size={12} />,
+          className: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30",
+        };
       case "MAYBE_ELIGIBLE":
-        return { label: "May Be Eligible", variant: "warning" as const };
+        return {
+          label: "Eligible",
+          icon: <CheckCircle2 size={12} />,
+          className: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30",
+        };
       case "NOT_YET":
-        return { label: "Approaching Milestone", variant: "info" as const };
+      case "APPROACHING":
+        return {
+          label: "Approaching",
+          icon: <Clock size={12} />,
+          className: "bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30",
+        };
+      case "NOT_ELIGIBLE":
+        return {
+          label: "Not Eligible",
+          icon: <XCircle size={12} />,
+          className: "bg-red-500/15 text-red-600 dark:text-red-400 border-red-500/30",
+        };
       case "UNKNOWN":
       case "REQUIRES_VERIFICATION":
-        return { label: "Requires Verification", variant: "maybe" as const };
-      case "NOT_ELIGIBLE":
-        return { label: "Not Eligible", variant: "destructive" as const };
+        return {
+          label: "Requires Verification",
+          icon: <AlertCircle size={12} />,
+          className: "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30",
+        };
       default:
         return null;
     }
@@ -57,15 +79,15 @@ export function KnowledgeCard({ record, personalized, className }: KnowledgeCard
   return (
     <div
       className={cn(
-        "card card-interactive p-5 flex flex-col justify-between space-y-4 rounded-2xl border transition-all duration-200 hover:border-accent/50",
+        "card card-interactive p-6 flex flex-col justify-between space-y-5 rounded-2xl border transition-all duration-200 hover:border-accent/50",
         personalized ? "border-accent/30 bg-card/90 shadow-sm" : "border-border-subtle bg-card",
         className
       )}
     >
       {/* ── Top Header Badge Row ── */}
-      <div className="space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-1.5 flex-wrap">
+      <div className="space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-2.5">
+          <div className="flex items-center gap-2 flex-wrap">
             <CategoryBadge category={record.category} />
             <span className="badge badge-muted text-[10px] uppercase font-bold tracking-wider">
               {(record.type || "SCHEME").replace(/_/g, " ")}
@@ -78,58 +100,47 @@ export function KnowledgeCard({ record, personalized, className }: KnowledgeCard
           />
         </div>
 
-        {/* ── Personalized Tag & Score ── */}
-        {personalized && (
-          <div className="flex items-center justify-between p-2.5 rounded-xl bg-accent-subtle/40 border border-accent/20 text-caption font-semibold text-accent">
-            <span className="flex items-center gap-1.5 font-bold">
-              <Sparkles size={13} className="animate-pulse" />
-              Relevant for you
-            </span>
-            <span className="font-mono font-extrabold text-body-sm">{relevancePct}% Match</span>
-          </div>
-        )}
-
         {/* ── Card Title & Description ── */}
-        <div>
+        <div className="space-y-2.5 pt-2">
           <h3 className="text-h4 font-bold text-foreground leading-snug line-clamp-2">
             {record.title}
           </h3>
-          <p className="text-body-sm text-muted-foreground mt-2 line-clamp-3 leading-relaxed">
+          <p className="text-body-sm text-muted-foreground line-clamp-3 leading-relaxed pt-0.5">
             {record.shortDescription}
           </p>
         </div>
       </div>
 
       {/* ── Rule Reasons ("Why you're seeing this") ── */}
-      {personalized && ruleReasons.length > 0 && (
-        <div className="p-3 rounded-xl bg-surface-secondary/70 border border-border-subtle space-y-1 text-[11px]">
+      {showWhyItMatters && personalized && ruleReasons.length > 0 && (
+        <div className="p-3.5 rounded-xl bg-surface-secondary/70 border border-border-subtle space-y-1.5 text-[11px] my-2">
           <span className="font-bold text-muted-foreground uppercase tracking-wider block flex items-center gap-1">
             <Info size={11} className="text-accent" /> Why you're seeing this:
           </span>
-          <p className="text-foreground leading-snug font-medium line-clamp-2">
+          <p className="text-foreground leading-relaxed font-medium line-clamp-2">
             {ruleReasons.slice(0, 2).join(" • ")}
           </p>
         </div>
       )}
 
       {/* ── Footer Row: Authority & Action Button ── */}
-      <div className="pt-3 border-t border-border-subtle flex items-center justify-between gap-3">
+      <div className="pt-4 mt-3 border-t border-border-subtle flex items-center justify-between gap-3">
         <div className="flex items-center gap-2 min-w-0">
-          {eligBadge && (
-            <span className={cn("badge text-[11px] font-bold px-2 py-0.5", `badge-${eligBadge.variant}`)}>
-              {eligBadge.label}
+          {eligBadge ? (
+            <span className={cn("badge text-[11px] font-bold px-2.5 py-1 rounded-lg border inline-flex items-center gap-1.5", eligBadge.className)}>
+              {eligBadge.icon}
+              <span>{eligBadge.label}</span>
             </span>
-          )}
-          {!eligBadge && record.authority && (
-            <span className="text-caption text-muted-foreground font-medium flex items-center gap-1 truncate max-w-[150px]">
-              <Building2 size={12} /> {record.authority.name}
+          ) : record.authority ? (
+            <span className="text-caption text-muted-foreground font-medium flex items-center gap-1.5 truncate max-w-[160px]">
+              <Building2 size={13} /> {record.authority.name}
             </span>
-          )}
+          ) : null}
         </div>
 
         <Link
           href={`/explore/${record.id}`}
-          className="btn btn-outline btn-xs gap-1 font-bold hover:btn-primary transition-all shrink-0"
+          className="btn btn-outline btn-xs gap-1.5 px-3 py-1.5 font-bold hover:btn-primary transition-all shrink-0"
         >
           View Details <ArrowRight size={12} />
         </Link>

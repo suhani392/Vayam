@@ -9,7 +9,7 @@
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { User, Session } from "@supabase/supabase-js";
-import { supabase, fetchDbProfile, upsertDbProfile } from "@/lib/db/supabase";
+import { supabase, fetchDbProfile, upsertDbProfile, updateDbProfile, getStateIdByCode, getStateCodeById } from "@/lib/db/supabase";
 import type { DbProfile } from "@/types/db";
 import type { UserProfileDraft } from "@/lib/core/user-profile";
 import { EMPTY_PROFILE, PROFILE_STORAGE_KEY } from "@/lib/core/user-profile";
@@ -57,18 +57,36 @@ const DEMO_USER_PROFILE: DbProfile = {
   updated_at: new Date().toISOString(),
 };
 
+const DEMO_STORAGE_KEY = "vayam_is_demo";
+const AUTH_HINT_KEY = "vayam_auth_hint";
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [dbProfile, setDbProfile] = useState<DbProfile | null>(null);
+  const [isDemo, setIsDemo] = useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem(DEMO_STORAGE_KEY) === "true";
+    }
+    return false;
+  });
+  const [dbProfile, setDbProfile] = useState<DbProfile | null>(() => {
+    if (typeof window !== "undefined" && localStorage.getItem(DEMO_STORAGE_KEY) === "true") {
+      return DEMO_USER_PROFILE;
+    }
+    return null;
+  });
   const [userProfile, setUserProfile] = useState<UserProfileDraft>(EMPTY_PROFILE);
   const [loading, setLoading] = useState(true);
-  const [isDemo, setIsDemo] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
 
   // Helper to convert DbProfile to front-end UserProfileDraft
-  const convertDbToUserProfile = (dbProf: DbProfile): UserProfileDraft => {
-    const stateInfo = normalizeStateCode(dbProf.state_id);
+  const convertDbToUserProfile = async (dbProf: DbProfile): Promise<UserProfileDraft> => {
+    let stateCode = dbProf.state_id;
+    if (stateCode && stateCode.length > 2) {
+      const code = await getStateCodeById(stateCode);
+      if (code) stateCode = code;
+    }
+    const stateInfo = normalizeStateCode(stateCode);
     return {
       id: dbProf.id,
       name: dbProf.full_name || "",
@@ -108,6 +126,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         const { data: { session: initSession } } = await supabase.auth.getSession();
         if (initSession?.user && mounted) {
+          if (typeof window !== "undefined") {
+            localStorage.setItem(AUTH_HINT_KEY, "true");
+          }
           setSession(initSession);
           setUser(initSession.user);
           setIsDemo(false);
@@ -116,7 +137,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const prof = await fetchDbProfile(initSession.user.id);
           if (prof && mounted) {
             setDbProfile(prof);
-            const mapped = convertDbToUserProfile(prof);
+            const mapped = await convertDbToUserProfile(prof);
             setUserProfile(mapped);
             syncToLocalStorage(mapped);
           } else if (mounted) {
@@ -144,7 +165,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               updated_at: new Date().toISOString(),
             };
             setDbProfile(fallbackProf);
-            const mapped = convertDbToUserProfile(fallbackProf);
+            const mapped = await convertDbToUserProfile(fallbackProf);
             setUserProfile(mapped);
             syncToLocalStorage(mapped);
           }
@@ -182,7 +203,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const prof = await fetchDbProfile(currentSession.user.id);
         if (prof) {
           setDbProfile(prof);
-          const mapped = convertDbToUserProfile(prof);
+          const mapped = await convertDbToUserProfile(prof);
           setUserProfile(mapped);
           syncToLocalStorage(mapped);
         }
@@ -218,12 +239,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(data.user);
         setSession(data.session);
         setIsDemo(false);
+
+        // Auto-promote admin@gmail.com role to 'admin'
+        if (data.user.email?.toLowerCase() === "admin@gmail.com") {
+          await supabase.from("profiles").update({ role: "admin" }).eq("id", data.user.id);
+        }
+
         const prof = await fetchDbProfile(data.user.id);
         if (prof) {
           setDbProfile(prof);
-          const mapped = convertDbToUserProfile(prof);
+          const mapped = await convertDbToUserProfile(prof);
           setUserProfile(mapped);
           syncToLocalStorage(mapped);
+        }
+
+        if (data.user.email?.toLowerCase() === "admin@gmail.com" && typeof window !== "undefined") {
+          window.location.href = "/admin";
         }
       }
       setLoading(false);
@@ -260,20 +291,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIsDemo(false);
 
         // Save profile row in Supabase
+        const isAdminEmail = email.toLowerCase() === "admin@gmail.com";
         const newDbProf: Partial<DbProfile> & { id: string } = {
           id: data.user.id,
           full_name: fullName,
           preferred_language: "en",
-          role: "citizen",
+          role: isAdminEmail ? "admin" : "citizen",
           onboarding_completed: false,
         };
         await upsertDbProfile(newDbProf);
         const fetched = await fetchDbProfile(data.user.id);
         if (fetched) {
           setDbProfile(fetched);
-          const mapped = convertDbToUserProfile(fetched);
+          const mapped = await convertDbToUserProfile(fetched);
           setUserProfile(mapped);
           syncToLocalStorage(mapped);
+        }
+
+        if (isAdminEmail && typeof window !== "undefined") {
+          window.location.href = "/admin";
         }
       }
 
@@ -286,10 +322,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const signInDemo = () => {
+  const signInDemo = async () => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem(DEMO_STORAGE_KEY, "true");
+      localStorage.setItem(AUTH_HINT_KEY, "true");
+    }
     setIsDemo(true);
     setDbProfile(DEMO_USER_PROFILE);
-    const mapped = convertDbToUserProfile(DEMO_USER_PROFILE);
+    const mapped = await convertDbToUserProfile(DEMO_USER_PROFILE);
     setUserProfile(mapped);
     syncToLocalStorage(mapped);
     setAuthModalOpen(false);
@@ -309,6 +349,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUserProfile(EMPTY_PROFILE);
       if (typeof window !== "undefined") {
         localStorage.removeItem(PROFILE_STORAGE_KEY);
+        localStorage.removeItem(DEMO_STORAGE_KEY);
+        localStorage.removeItem(AUTH_HINT_KEY);
       }
       setLoading(false);
     }
@@ -319,11 +361,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     syncToLocalStorage(profileDraft);
 
     if (user && !isDemo) {
+      let dbStateId = profileDraft.location?.stateCode || null;
+      if (dbStateId && dbStateId.length === 2) {
+        dbStateId = await getStateIdByCode(dbStateId) || null;
+      }
+
       const dbPayload: Partial<DbProfile> & { id: string } = {
         id: user.id,
         full_name: profileDraft.name || null,
         date_of_birth: profileDraft.dateOfBirth || null,
-        state_id: profileDraft.location?.stateCode || null,
+        state_id: dbStateId,
         district: profileDraft.location?.district || null,
         education_level: profileDraft.educationLevel || null,
         employment_status: profileDraft.employmentStatus || null,
@@ -334,7 +381,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         updated_at: new Date().toISOString(),
       };
 
-      const res = await upsertDbProfile(dbPayload);
+      const res = await updateDbProfile(dbPayload);
       if (res.success && res.data) {
         setDbProfile(res.data);
       }

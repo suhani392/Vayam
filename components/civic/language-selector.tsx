@@ -36,9 +36,9 @@ export function LanguageSelector() {
   return (
     <Dropdown
       trigger={
-        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border-subtle bg-card hover:bg-muted text-body-sm font-medium text-foreground transition-colors cursor-pointer select-none">
+        <div className="flex items-center gap-1.5 px-3 h-[38px] rounded-xl border border-border-subtle bg-card hover:bg-muted text-body-sm font-medium text-foreground transition-colors cursor-pointer select-none">
           <Globe size={14} className="text-muted-foreground" />
-          <span className={lang !== "en" ? "font-devanagari" : ""}>{activeLang.native}</span>
+          <span className={`pt-[2px] leading-none ${lang !== "en" ? "font-devanagari" : ""}`}>{activeLang.native}</span>
           <ChevronDown size={12} className="text-muted-foreground ml-0.5" />
         </div>
       }
@@ -57,12 +57,14 @@ export function LanguageSelector() {
               selected={lang === language.code}
               onClick={() => setLang(language.code)}
             >
-              <span className={`font-medium ${language.script === "devanagari" ? "font-devanagari" : ""}`}>
-                {language.label}
+              <span className="flex w-full items-center justify-between">
+                <span className={`font-medium ${language.script === "devanagari" ? "font-devanagari" : ""}`}>
+                  {language.label}
+                </span>
+                {lang === language.code && (
+                  <Check size={12} className="text-accent" />
+                )}
               </span>
-              {lang === language.code && (
-                <Check size={12} className="text-accent ml-auto" />
-              )}
             </DropdownItem>
           ))}
         </div>
@@ -71,8 +73,10 @@ export function LanguageSelector() {
         <div className="opacity-50 pointer-events-none">
           {ALL_LANGUAGES.filter((l) => !l.supported).map((language) => (
             <DropdownItem key={language.code}>
-              <span className="font-medium">{language.native}</span>
-              <span className="text-[10px] text-muted-foreground ml-auto font-normal">{t("lang.comingSoon")}</span>
+              <span className="flex w-full items-center justify-between">
+                <span className="font-medium">{language.native}</span>
+                <span className="text-[10px] text-muted-foreground font-normal">{t("lang.comingSoon")}</span>
+              </span>
             </DropdownItem>
           ))}
         </div>

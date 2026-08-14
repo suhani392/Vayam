@@ -11,13 +11,14 @@
  * and Phase 6B for source provenance badges. Zero AI dependencies.
  */
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { cn } from "@/lib/utils/cn";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/navigation";
 import { KnowledgeCard } from "@/components/knowledge/knowledge-card";
 import { Card, CardContent } from "@/components/ui/card";
 import { searchKnowledgeRecords, getPersonalizedKnowledge } from "@/lib/knowledge/search";
+import { KnowledgeRepository } from "@/lib/knowledge/repository";
 import { isProfileValid } from "@/lib/core/user-profile";
 import type { UserProfile } from "@/lib/core/types";
 import {
@@ -60,6 +61,10 @@ const TYPES = [
 import { useLanguage } from "@/hooks/useLanguage";
 import { useUserProfile } from "@/hooks/useUserProfile";
 
+import { evaluateEligibility } from "@/lib/core/eligibility";
+import { calculateRelevance } from "@/lib/core/relevance";
+import { knowledgeRecordToCivicItem } from "@/lib/knowledge/adapter";
+
 export default function ExplorePage() {
   const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState("");
@@ -67,22 +72,21 @@ export default function ExplorePage() {
   const [selectedType, setSelectedType] = useState("all");
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [sortBy, setSortBy] = useState<"recommended" | "title">("recommended");
+  const [dbSynced, setDbSynced] = useState(false);
+
+  useEffect(() => {
+    KnowledgeRepository.syncWithDatabase().then(() => {
+      setDbSynced(true);
+    });
+  }, []);
 
   const { profile, loaded } = useUserProfile();
-  const activeProfile = loaded && profile && isProfileValid(profile) ? (profile as UserProfile) : null;
+  const activeProfile = loaded && profile ? (profile as UserProfile) : null;
 
   const personalizedItems = useMemo(() => {
     if (!activeProfile) return [];
     return getPersonalizedKnowledge(activeProfile);
-  }, [activeProfile]);
-
-  const personalizedMap = useMemo(() => {
-    const map = new Map<string, any>();
-    personalizedItems.forEach((item) => {
-      map.set(item.record.id, item.recommendation);
-    });
-    return map;
-  }, [personalizedItems]);
+  }, [activeProfile, dbSynced]);
 
   // Filtered Search Results
   const searchResults = useMemo(() => {
@@ -94,7 +98,28 @@ export default function ExplorePage() {
       sortBy,
       profile: activeProfile,
     });
-  }, [searchQuery, selectedCategory, selectedType, verifiedOnly, sortBy, activeProfile]);
+  }, [searchQuery, selectedCategory, selectedType, verifiedOnly, sortBy, activeProfile, dbSynced]);
+
+  const personalizedMap = useMemo(() => {
+    const map = new Map<string, any>();
+    if (activeProfile) {
+      searchResults.forEach((record) => {
+        const item = knowledgeRecordToCivicItem(record);
+        const eligibility = evaluateEligibility(activeProfile, item);
+        const relevance = calculateRelevance(activeProfile, item, eligibility);
+        map.set(record.id, {
+          item,
+          score: relevance.score,
+          relevance,
+          eligibility,
+          reasons: [],
+          urgency: "normal",
+          category: item.category,
+        });
+      });
+    }
+    return map;
+  }, [searchResults, activeProfile]);
 
   const handleResetFilters = () => {
     setSearchQuery("");
@@ -108,38 +133,15 @@ export default function ExplorePage() {
       {/* ── Page Header ── */}
       <PageHeader
         badge={
-          <span className="badge badge-primary gap-1">
-            <Compass size={12} /> Discovery & Search
+          <span className="badge badge-saffron font-bold text-caption uppercase tracking-wider inline-flex items-center gap-1.5 px-3 py-1">
+            <Compass size={14} /> Discovery & Search
           </span>
         }
         title="Explore Vayam"
         description="Find services, opportunities, benefits and rights that matter to you."
       />
 
-      {/* ── Personalization Status Banner ── */}
-      <div className="mb-6 p-4 rounded-2xl border border-border-subtle bg-surface-secondary/60 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-accent/15 text-accent flex items-center justify-center font-bold">
-            <User size={18} />
-          </div>
-          <div>
-            <span className="text-caption font-bold text-muted-foreground uppercase tracking-wider block">
-              Personalization Status
-            </span>
-            <p className="text-body-sm font-semibold text-foreground">
-              {activeProfile && activeProfile.name
-                ? `${activeProfile.name} · ${activeProfile.location.stateName || "Unknown State"}`
-                : "Browsing without profile personalization"}
-            </p>
-          </div>
-        </div>
 
-        {!activeProfile && (
-          <div className="text-right text-body-sm text-muted-foreground">
-            Complete your profile on the Profile page to enable tailored recommendations and state-specific filters.
-          </div>
-        )}
-      </div>
 
       {/* ── Large Search & Filter Bar ── */}
       <div className="space-y-4 mb-8">
@@ -185,57 +187,12 @@ export default function ExplorePage() {
           })}
         </div>
 
-        {/* ── Secondary Controls: Type, Verification, Sorting ── */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-border-subtle text-caption">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-muted-foreground font-bold uppercase tracking-wider flex items-center gap-1">
-              <Filter size={12} /> Type:
-            </span>
-            <select
-              value={selectedType}
-              onChange={(e) => setSelectedType(e.target.value)}
-              className="px-3 py-1.5 rounded-xl border border-border-subtle bg-card text-foreground font-medium text-caption focus:outline-none"
-            >
-              {TYPES.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.label}
-                </option>
-              ))}
-            </select>
 
-            <button
-              onClick={() => setVerifiedOnly(!verifiedOnly)}
-              className={cn(
-                "flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold border transition-all",
-                verifiedOnly
-                  ? "bg-success/15 text-success border-success/40"
-                  : "bg-card text-muted-foreground border-border-subtle hover:text-foreground"
-              )}
-            >
-              <ShieldCheck size={13} />
-              <span>Verified Only</span>
-            </button>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <span className="text-muted-foreground font-bold uppercase tracking-wider flex items-center gap-1">
-              <SlidersHorizontal size={12} /> Sort:
-            </span>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as any)}
-              className="px-3 py-1.5 rounded-xl border border-border-subtle bg-card text-foreground font-medium text-caption focus:outline-none"
-            >
-              <option value="recommended">Recommended</option>
-              <option value="title">A-Z Title</option>
-            </select>
-          </div>
-        </div>
       </div>
 
       {/* ── Personalized "For You" Section ── */}
       {activeProfile && searchQuery === "" && selectedCategory === "all" && (
-        <section className="mb-10 space-y-4">
+        <section className="mt-12 pt-4 mb-12 space-y-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Sparkles size={18} className="text-accent" />
@@ -276,6 +233,7 @@ export default function ExplorePage() {
                 key={record.id}
                 record={record}
                 personalized={personalizedMap.get(record.id) || null}
+                showWhyItMatters={false}
               />
             ))}
           </div>

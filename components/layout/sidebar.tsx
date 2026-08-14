@@ -22,6 +22,9 @@ import {
   User,
   Sparkles,
   Shield,
+  GraduationCap,
+  Scale,
+  Wallet,
 } from "lucide-react";
 
 export interface NavRoute {
@@ -35,9 +38,12 @@ export interface NavRoute {
 
 export const NAV_ROUTES: NavRoute[] = [
   { href: "/",          labelKey: "nav.home",      descKey: "nav.home.desc",      icon: <Home size={18} /> },
-  { href: "/explore",   labelKey: "nav.explore",   descKey: "nav.explore.desc",   icon: <Compass size={18} />, badge: "new" },
+  { href: "/explore",   labelKey: "nav.explore",   descKey: "nav.explore.desc",   icon: <Compass size={18} /> },
+  { href: "/education", labelKey: "nav.education", descKey: "nav.education.desc", icon: <GraduationCap size={18} /> },
+  { href: "/rights",    labelKey: "nav.rights",    descKey: "nav.rights.desc",    icon: <Scale size={18} /> },
   { href: "/timeline",  labelKey: "nav.timeline",  descKey: "nav.timeline.desc",  icon: <Clock size={18} /> },
   { href: "/assistant", labelKey: "nav.assistant", descKey: "nav.assistant.desc", icon: <Bot size={18} /> },
+  { href: "/lifestyle", labelKey: "nav.lifestyle", descKey: "nav.lifestyle.desc", icon: <Wallet size={18} />, badge: "Upcoming" },
   { href: "/profile",   labelKey: "nav.profile",   descKey: "nav.profile.desc",   icon: <User size={18} /> },
 ];
 
@@ -49,7 +55,7 @@ export function Sidebar({ className }: { className?: string }) {
     <aside
       aria-label="Sidebar Navigation"
       className={cn(
-        "hidden lg:flex flex-col w-72 flex-shrink-0 min-h-screen border-r border-border-subtle bg-card/80 backdrop-blur-md sticky top-0 h-screen z-30 select-none",
+        "hidden lg:flex flex-col w-72 min-w-[240px] max-w-md resize-x overflow-x-hidden flex-shrink-0 min-h-screen border-r border-border-subtle bg-card/80 backdrop-blur-md sticky top-0 h-screen z-30 select-none",
         className
       )}
     >
@@ -59,13 +65,23 @@ export function Sidebar({ className }: { className?: string }) {
           <img
             src="/assets/Vayam_Icon.png?v=2"
             alt="Vayam Icon Logo"
-            className="h-10 w-auto object-contain transition-transform group-hover:scale-105"
+            className="h-10 w-auto object-contain transition-transform group-hover:scale-105 dark:hidden"
+          />
+          <img
+            src="/assets/Vayam_Dark_Icon.png?v=2"
+            alt="Vayam Icon Logo Dark"
+            className="h-10 w-auto object-contain transition-transform group-hover:scale-105 hidden dark:block"
           />
           <div>
             <img
               src="/assets/Vayam_Text.png?v=2"
               alt="Vayam"
-              className="h-6 w-auto object-contain"
+              className="h-6 w-auto object-contain dark:hidden"
+            />
+            <img
+              src="/assets/Vayam_Dark_Text.png?v=2"
+              alt="Vayam Dark"
+              className="h-6 w-auto object-contain hidden dark:block"
             />
             <p className="text-[11px] text-muted-foreground font-medium truncate max-w-[170px] mt-0.5">
               {APP_CONFIG.tagline}
@@ -75,7 +91,7 @@ export function Sidebar({ className }: { className?: string }) {
       </div>
 
       {/* ── Primary Navigation ── */}
-      <div className="flex-1 px-4 py-6 overflow-y-auto space-y-6">
+      <div className="flex-1 px-4 py-6 flex flex-col space-y-6">
         <div>
           <p className="px-3 text-[11px] font-bold text-muted-foreground uppercase tracking-widest mb-2">
             {t("sidebar.civicIntelligence")}
@@ -113,31 +129,40 @@ export function Sidebar({ className }: { className?: string }) {
                     <div className="flex items-center justify-between">
                       <span className="truncate">{t(route.labelKey as any)}</span>
                       {route.badge && (
-                        <span className="badge badge-saffron text-[10px] py-0 px-1.5">
-                          {t("common.new")}
+                        <span
+                          className={cn(
+                            "text-[9px] font-bold uppercase tracking-wider px-1.5 py-[1px] rounded-md shrink-0 border",
+                            route.badge === "Upcoming"
+                              ? "bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30"
+                              : "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30"
+                          )}
+                        >
+                          {route.badge}
                         </span>
                       )}
                     </div>
-                    <p className="text-[11px] text-muted-foreground font-normal truncate mt-0.5 opacity-80">
-                      {t(route.descKey as any)}
-                    </p>
                   </div>
                 </Link>
               );
             })}
           </nav>
         </div>
+      <div className="px-6 pb-0 mt-auto pt-20">
+        <img 
+          src="/assets/Bharat-India.png" 
+          alt="Bharat India Motif" 
+          className="w-[55%] mx-auto h-auto object-contain opacity-90 mix-blend-multiply -mb-2 dark:hidden"
+        />
+        <img 
+          src="/assets/Bharat-India_Dark.png" 
+          alt="Bharat India Motif Dark" 
+          className="w-[55%] mx-auto h-auto object-contain opacity-70 mix-blend-screen -mb-2 hidden dark:block"
+        />
+      </div>
       </div>
 
-      {/* ── Lower Area (Theme Switcher & Subtle Indian Identity) ── */}
+      {/* ── Lower Area (Official Identity & Provenance) ── */}
       <div className="p-4 border-t border-border-subtle space-y-4 bg-surface-secondary/40">
-        <div>
-          <p className="px-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5">
-            {t("sidebar.appearance")}
-          </p>
-          <ThemeSwitcher className="w-full justify-between" />
-        </div>
-
         {/* Official Data Provenance Link */}
         <Link href="/dev-sources" className="p-3 rounded-2xl bg-card border border-border-subtle hover:border-accent/40 transition-colors flex items-center gap-3 motif-bg group block">
           <Shield size={16} className="text-accent flex-shrink-0 group-hover:scale-110 transition-transform" />

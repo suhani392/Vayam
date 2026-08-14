@@ -8,12 +8,14 @@
  * Dynamically populated state options (36 States/UTs), Education stages, Employment status, DOB, and Income.
  */
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/navigation";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import type { EducationLevel, EmploymentStatus, UserProfile } from "@/lib/core/types";
 import { getPersonalizedCivicState } from "@/lib/core/civic-state";
+import { KnowledgeRepository } from "@/lib/knowledge/repository";
+import { knowledgeRecordsToCivicItems } from "@/lib/knowledge/adapter";
 import { useLanguage } from "@/hooks/useLanguage";
 import { ALL_INDIAN_STATES } from "@/lib/core/profile/normalization";
 import {
@@ -46,6 +48,13 @@ export default function ProfilePage() {
   } = useUserProfile();
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [dbSynced, setDbSynced] = useState(false);
+
+  useEffect(() => {
+    KnowledgeRepository.syncWithDatabase().then(() => {
+      setDbSynced(true);
+    });
+  }, []);
 
   if (!loaded || !profile) {
     return (
@@ -55,9 +64,12 @@ export default function ProfilePage() {
     );
   }
 
-  // Compute instant civic state when profile is valid
-  const civicState = profile && profile.dateOfBirth && profile.location?.stateCode && profile.location?.stateName && profile.educationLevel && profile.employmentStatus
-    ? getPersonalizedCivicState(profile as UserProfile)
+  const dbRecords = KnowledgeRepository.getAllKnowledgeRecords();
+  const civicItems = knowledgeRecordsToCivicItems(dbRecords);
+
+  // Compute instant civic state when profile has basic fields
+  const civicState = profile && profile.dateOfBirth
+    ? getPersonalizedCivicState(profile as UserProfile, civicItems)
     : null;
 
   const handleSave = async (e: React.FormEvent) => {
@@ -95,7 +107,11 @@ export default function ProfilePage() {
       return;
     }
 
-    await saveProfile(profile);
+    const res = await saveProfile(profile);
+    if (res && res.success === false) {
+      setValidationError("Failed to save to database: " + res.error);
+      return;
+    }
     setSavedSuccess(true);
     setTimeout(() => setSavedSuccess(false), 3000);
   };
@@ -104,8 +120,8 @@ export default function ProfilePage() {
     <PageContainer width="standard">
       <PageHeader
         badge={
-          <span className="badge badge-accent gap-1">
-            <Shield size={12} /> {t("header.profile.privacy")}
+          <span className="badge badge-saffron font-bold text-caption uppercase tracking-wider inline-flex items-center gap-1.5 px-3 py-1">
+            <Shield size={14} /> {t("header.profile.privacy")}
           </span>
         }
         title={t("nav.profile")}
@@ -113,18 +129,6 @@ export default function ProfilePage() {
       />
 
       <div className="space-y-8 mb-12">
-        {/* ── Privacy Assurance Banner ── */}
-        <div className="p-4 rounded-2xl bg-surface-secondary/70 border border-border-subtle flex items-start gap-3 text-caption">
-          <Shield size={18} className="text-success shrink-0 mt-0.5" />
-          <div className="space-y-0.5">
-            <span className="font-bold text-foreground block">
-              Supabase Database Protected
-            </span>
-            <span className="text-muted-foreground leading-relaxed block">
-              Your profile information is stored securely in Supabase PostgreSQL (`profiles` table) with Row-Level Security (RLS) policies ensuring only you can view and edit your data.
-            </span>
-          </div>
-        </div>
 
         {civicState ? (
           <div className="p-6 rounded-2xl bg-gradient-to-r from-accent/10 to-card border border-accent/20 space-y-3">
@@ -143,7 +147,7 @@ export default function ProfilePage() {
             </p>
 
             <div className="flex flex-wrap gap-2 pt-1 text-caption">
-              <span className="badge badge-muted">Matched Opportunities: {civicState.recommendations.now.length}</span>
+              <span className="badge badge-accent font-bold">Matched Opportunities: {civicState.allRecommendations.length}</span>
               <span className="badge badge-muted">State: {profile.location?.stateName || "Not set"}</span>
             </div>
           </div>
@@ -178,7 +182,7 @@ export default function ProfilePage() {
           {savedSuccess && (
             <div className="p-3.5 rounded-xl bg-success/10 border border-success/30 text-success text-body-sm flex items-center gap-2">
               <CheckCircle2 size={16} />
-              <span>Profile updated in Supabase database! Civic state re-evaluated.</span>
+              <span>Profile updated successfully! Civic state re-evaluated.</span>
             </div>
           )}
 
@@ -214,6 +218,23 @@ export default function ProfilePage() {
               />
             </div>
 
+            {/* Gender */}
+            <div className="space-y-1.5">
+              <label className="text-caption font-bold text-foreground flex items-center justify-between">
+                <span>Gender</span>
+              </label>
+              <select
+                value={profile.gender || "prefer_not_to_say"}
+                onChange={(e) => setProfile({ ...profile, gender: e.target.value as any })}
+                className="w-full pl-4 !pr-14 py-2.5 rounded-xl border border-border bg-card text-foreground text-body-sm focus:outline-none focus:ring-2 focus:ring-accent/50 appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%239CA3AF%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:12px_12px] bg-no-repeat bg-[position:right_1rem_center]"
+              >
+                <option value="female">Female</option>
+                <option value="male">Male</option>
+                <option value="other">Transgender / Other</option>
+                <option value="prefer_not_to_say">Prefer Not to Say</option>
+              </select>
+            </div>
+
             {/* State of Residence */}
             <div className="space-y-1.5">
               <label className="text-caption font-bold text-foreground flex items-center justify-between">
@@ -234,7 +255,7 @@ export default function ProfilePage() {
                     },
                   });
                 }}
-                className="w-full px-4 py-2.5 rounded-xl border border-border bg-card text-foreground text-body-sm focus:outline-none focus:ring-2 focus:ring-accent/50"
+                className="w-full pl-4 !pr-14 py-2.5 rounded-xl border border-border bg-card text-foreground text-body-sm focus:outline-none focus:ring-2 focus:ring-accent/50 appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%239CA3AF%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:12px_12px] bg-no-repeat bg-[position:right_1rem_center]"
                 required
               >
                 <option value="">-- Select State of Residence --</option>
@@ -254,7 +275,7 @@ export default function ProfilePage() {
               <select
                 value={profile.educationLevel || ""}
                 onChange={(e) => setProfile({ ...profile, educationLevel: e.target.value as EducationLevel })}
-                className="w-full px-4 py-2.5 rounded-xl border border-border bg-card text-foreground text-body-sm focus:outline-none focus:ring-2 focus:ring-accent/50"
+                className="w-full pl-4 !pr-14 py-2.5 rounded-xl border border-border bg-card text-foreground text-body-sm focus:outline-none focus:ring-2 focus:ring-accent/50 appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%239CA3AF%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:12px_12px] bg-no-repeat bg-[position:right_1rem_center]"
                 required
               >
                 <option value="">-- Select Education Stage --</option>
@@ -278,7 +299,7 @@ export default function ProfilePage() {
               <select
                 value={profile.employmentStatus || ""}
                 onChange={(e) => setProfile({ ...profile, employmentStatus: e.target.value as EmploymentStatus })}
-                className="w-full px-4 py-2.5 rounded-xl border border-border bg-card text-foreground text-body-sm focus:outline-none focus:ring-2 focus:ring-accent/50"
+                className="w-full pl-4 !pr-14 py-2.5 rounded-xl border border-border bg-card text-foreground text-body-sm focus:outline-none focus:ring-2 focus:ring-accent/50 appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%239CA3AF%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:12px_12px] bg-no-repeat bg-[position:right_1rem_center]"
                 required
               >
                 <option value="">-- Select Employment Status --</option>
@@ -299,12 +320,13 @@ export default function ProfilePage() {
               </label>
               <input
                 type="number"
+                min="0"
                 value={profile.annualIncomeInr ?? ""}
                 onChange={(e) => setProfile({
                   ...profile,
-                  annualIncomeInr: e.target.value ? Number(e.target.value) : undefined,
+                  annualIncomeInr: e.target.value !== "" ? Number(e.target.value) : undefined,
                 })}
-                placeholder="e.g. 250000"
+                placeholder="e.g. 0 (for students/dependents) or 250000"
                 className="w-full px-4 py-2.5 rounded-xl border border-border bg-card text-foreground text-body-sm focus:outline-none focus:ring-2 focus:ring-accent/50 font-mono placeholder:text-muted-foreground"
               />
               <p className="text-[11px] text-muted-foreground flex items-start gap-1 pt-0.5">

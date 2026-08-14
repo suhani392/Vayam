@@ -28,19 +28,47 @@ export function AppShell({ children }: AppShellProps) {
 
   // Bypass shell for design-system preview route
   const isDesignSystem = pathname === "/design-system";
-
   if (isDesignSystem) {
-    return <main id="main-content">{children}</main>;
+    return <main id="main-content" className="min-h-screen bg-background">{children}</main>;
   }
 
-  // Unauthenticated Flow: Hide Sidebar and MobileNav completely!
-  if (!isAuthenticated && !loading) {
+  // Admin routes: Keep top Header, hide left Sidebar and MobileNav
+  const isAdminRoute = pathname?.startsWith("/admin");
+  if (isAdminRoute) {
     return (
       <div className="flex min-h-screen bg-background text-foreground antialiased font-sans">
         <div className="flex-1 flex flex-col min-w-0">
           <Header />
           <main id="main-content" className="flex-1">
-            {pathname === "/" ? (
+            {children}
+          </main>
+        </div>
+      </div>
+    );
+  }
+
+  // Loading state during initial session check
+  if (loading) {
+    return (
+      <div className="flex min-h-screen bg-background text-foreground antialiased font-sans">
+        <div className="flex-1 flex flex-col min-w-0">
+          <Header />
+          <main id="main-content" className="flex-1">
+            {children}
+          </main>
+        </div>
+      </div>
+    );
+  }
+
+  // Unauthenticated Flow: Hide Sidebar and MobileNav completely!
+  if (!isAuthenticated) {
+    return (
+      <div className="flex min-h-screen bg-background text-foreground antialiased font-sans">
+        <div className="flex-1 flex flex-col min-w-0">
+          <Header />
+          <main id="main-content" className="flex-1">
+            {pathname === "/" || pathname === "/dev-sources" ? (
               children
             ) : (
               <PageContainer width="wide">

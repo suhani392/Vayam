@@ -60,8 +60,20 @@ export function deriveCivicMilestones(
     });
   }
 
-  // Education Milestones
-  if (profile.educationLevel === "secondary" || profile.educationLevel === "higher_secondary") {
+  // Education & Career Pathfinding Milestone
+  if (profile.educationLevel === "secondary" || profile.educationLevel === "higher_secondary" || profile.educationLevel === "diploma") {
+    milestones.push({
+      id: "education-pathfinder-milestone",
+      title: "Explore Higher Education & Career Pathways",
+      description: "Discover realistic education routes, entrance exams (JEE, NEET, CLAT, CA), degrees, and skill pathways for your target profession.",
+      trigger: "Class 10/12 / Diploma Education Decision Phase",
+      category: "education_transition",
+      importance: "high",
+      timing: "current",
+      actionRequired: true,
+      relatedCategory: "education",
+    });
+
     milestones.push({
       id: "post-matric-scholarship-window",
       title: "Post-Matric Scholarship Window",
@@ -74,6 +86,23 @@ export function deriveCivicMilestones(
       relatedCategory: "scholarship",
     });
   }
+
+  // Civic Rights Milestone (Age 18+)
+  if (age >= 18) {
+    milestones.push({
+      id: "know-your-civic-rights-18",
+      title: "Know Your Civic & Legal Rights",
+      description: "Understand citizen rights in simple language across consumer disputes, debt recovery, cyber fraud, tenancy, and public services.",
+      trigger: "Adult Citizen Rights Awareness",
+      category: "civic_right",
+      importance: "medium",
+      timing: "current",
+      actionRequired: false,
+      relatedCategory: "rights",
+    });
+  }
+
+  // Senior Citizen Milestones (Age 60+)
 
   // Senior Citizen Milestones (Age 60+)
   if (age >= 60) {

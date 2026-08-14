@@ -97,7 +97,7 @@ export function VayamAssistant({
     const userMsg = { id: userMessageId, role: "user" as const, content: query };
 
     setMessages((prev) => [...prev, userMsg]);
-    if (!queryText) setInputQuery("");
+    setInputQuery("");
     setIsProcessing(true);
     setToolStatus(t("assistant.toolStatus.checking"));
 
@@ -160,12 +160,9 @@ export function VayamAssistant({
       setVoiceState("PROCESSING");
 
       if (transcript) {
-        setInputQuery(transcript);
-        // Auto-submit after a brief moment so user can see it
-        setTimeout(() => {
-          handleSubmit(transcript);
-          setVoiceState("IDLE");
-        }, 200);
+        setInputQuery("");
+        handleSubmit(transcript);
+        setVoiceState("IDLE");
       } else {
         setVoiceState("ERROR");
         setTimeout(() => setVoiceState("IDLE"), 3000);
@@ -326,7 +323,7 @@ export function VayamAssistant({
               className={cn(
                 "w-8 h-8 rounded-xl flex items-center justify-center shrink-0 font-bold text-caption",
                 msg.role === "user"
-                  ? "bg-primary text-primary-foreground"
+                  ? "bg-amber-500 text-white shadow-xs"
                   : "bg-accent text-accent-foreground"
               )}
             >
@@ -338,7 +335,7 @@ export function VayamAssistant({
                 className={cn(
                   "p-4 rounded-2xl text-body-sm leading-relaxed",
                   msg.role === "user"
-                    ? "bg-primary text-primary-foreground rounded-tr-none"
+                    ? "bg-amber-500/15 border border-amber-500/30 text-foreground rounded-tr-none shadow-xs"
                     : "bg-surface-secondary/80 text-foreground border border-border-subtle rounded-tl-none"
                 )}
               >

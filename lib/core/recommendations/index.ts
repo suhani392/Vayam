@@ -25,8 +25,16 @@ export function rankRecommendations(
   profile: UserProfile,
   items: CivicItem[]
 ): Recommendation[] {
-  const recommendations: Recommendation[] = items.map((item) => {
+  const recommendations: Recommendation[] = [];
+
+  items.forEach((item) => {
     const eligibility = evaluateEligibility(profile, item);
+
+    // Strictly discard items for which user is NOT_ELIGIBLE
+    if (eligibility.status === "NOT_ELIGIBLE") {
+      return;
+    }
+
     const relevance = calculateRelevance(profile, item, eligibility);
 
     // Calculate urgency
@@ -44,7 +52,7 @@ export function rankRecommendations(
       ...eligibility.reasons.map((r) => `Eligibility: ${r}`),
     ];
 
-    return {
+    recommendations.push({
       item,
       score: relevance.score,
       eligibility,
@@ -52,7 +60,7 @@ export function rankRecommendations(
       reasons: combinedReasons,
       urgency,
       category: item.category,
-    };
+    });
   });
 
   // Deterministic sorting hierarchy:

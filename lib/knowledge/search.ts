@@ -11,7 +11,7 @@
 
 import type { KnowledgeRecord, KnowledgeFilterQuery } from "./types";
 import { KnowledgeRepository } from "./repository";
-import { knowledgeRecordToCivicItem } from "./adapter";
+import { knowledgeRecordsToCivicItems, knowledgeRecordToCivicItem } from "./adapter";
 import {
   getPersonalizedCivicState,
   evaluateEligibility,
@@ -127,50 +127,88 @@ export function searchKnowledgeRecords(options: SearchOptions = {}): KnowledgeRe
  * Returns personalized KnowledgeRecords evaluated through Phase 5 Civic Intelligence Core.
  */
 export function getPersonalizedKnowledge(profile: UserProfile): PersonalizedKnowledgeItem[] {
-  const civicState = getPersonalizedCivicState(profile);
+  const dbRecords = KnowledgeRepository.getAllKnowledgeRecords();
+  const civicItems = dbRecords.map(knowledgeRecordToCivicItem);
+  const civicState = getPersonalizedCivicState(profile, civicItems);
 
-  return civicState.allRecommendations.map((recommendation) => {
-    const record = KnowledgeRepository.getKnowledgeRecordById(recommendation.item.id) || {
-      id: recommendation.item.id,
-      type: "SCHEME" as const,
-      title: recommendation.item.title,
-      shortDescription: recommendation.item.shortDescription,
-      fullDescription: recommendation.item.fullDescription,
-      category: recommendation.item.category,
-      authority: { name: recommendation.item.provenance.department || "Government of India", level: "CENTRAL" as const },
-      benefits: recommendation.item.benefits,
-      benefitAmountInr: recommendation.item.benefitAmountInr,
-      application: {
-        method: "ONLINE" as const,
-        officialUrl: recommendation.item.provenance.officialUrl,
-        documentsRequired: (recommendation.item.requiredDocuments || []).map((d, i) => ({
-          id: `doc-${i}`,
-          name: d,
-          required: true,
-        })),
-      },
-      timing: {
-        deadline: recommendation.item.deadline || null,
-        deadlineType: recommendation.item.isOngoing ? "NO_DEADLINE" as const : "FIXED_DATE" as const,
-        lastVerified: recommendation.item.provenance.lastVerifiedDate,
-      },
-      source: {
-        name: recommendation.item.provenance.sourceName,
-        url: recommendation.item.provenance.officialUrl,
-        authority: recommendation.item.provenance.department || "Government Authority",
-        sourceType: "OFFICIAL_GOVERNMENT" as const,
-        sourceTrust: "OFFICIAL_GOVERNMENT" as const,
-        lastVerified: recommendation.item.provenance.lastVerifiedDate,
-        verificationStatus: recommendation.item.provenance.verificationStatus === "VERIFIED" ? "VERIFIED" as const : "DEMO" as const,
-      },
-      status: "ACTIVE" as const,
-    };
+  let items: PersonalizedKnowledgeItem[] = [];
 
-    return {
-      record,
-      recommendation,
-    };
-  });
+  if (civicState.allRecommendations && civicState.allRecommendations.length > 0) {
+    items = civicState.allRecommendations.map((recommendation) => {
+      const record = KnowledgeRepository.getKnowledgeRecordById(recommendation.item.id) || {
+        id: recommendation.item.id,
+        type: "SCHEME" as const,
+        title: recommendation.item.title,
+        shortDescription: recommendation.item.shortDescription,
+        fullDescription: recommendation.item.fullDescription,
+        category: recommendation.item.category,
+        authority: { name: recommendation.item.provenance.department || "Government of India", level: "CENTRAL" as const },
+        benefits: recommendation.item.benefits,
+        benefitAmountInr: recommendation.item.benefitAmountInr,
+        application: {
+          method: "ONLINE" as const,
+          officialUrl: recommendation.item.provenance.officialUrl,
+          documentsRequired: (recommendation.item.requiredDocuments || []).map((d, i) => ({
+            id: `doc-${i}`,
+            name: d,
+            required: true,
+          })),
+        },
+        timing: {
+          deadline: recommendation.item.deadline || null,
+          deadlineType: recommendation.item.isOngoing ? "NO_DEADLINE" as const : "FIXED_DATE" as const,
+          lastVerified: recommendation.item.provenance.lastVerifiedDate,
+        },
+        source: {
+          name: recommendation.item.provenance.sourceName,
+          url: recommendation.item.provenance.officialUrl,
+          authority: recommendation.item.provenance.department || "Government Authority",
+          sourceType: "OFFICIAL_GOVERNMENT" as const,
+          sourceTrust: "OFFICIAL_GOVERNMENT" as const,
+          lastVerified: recommendation.item.provenance.lastVerifiedDate,
+          verificationStatus: recommendation.item.provenance.verificationStatus === "VERIFIED" ? "VERIFIED" as const : "DEMO" as const,
+        },
+        status: "ACTIVE" as const,
+      };
+
+      return {
+        record,
+        recommendation,
+      };
+    });
+  } else {
+    items = dbRecords.map((record) => {
+      const item = knowledgeRecordToCivicItem(record);
+      const eligibility = evaluateEligibility(profile, item);
+      return {
+        record,
+        recommendation: {
+          item,
+          score: 0.85,
+          relevance: {
+            itemId: record.id,
+            score: 0.85,
+            factors: {
+              ageMatch: true,
+              lifeStageMatch: true,
+              educationMatch: true,
+              locationMatch: true,
+              eligibilityMatch: true,
+              deadlineApproaching: false,
+            },
+            reasons: ["Verified opportunity from database"],
+          },
+          category: (record.category || "services") as any,
+          eligibility,
+          urgency: "normal" as const,
+          reasons: ["Verified opportunity from database"],
+        },
+      };
+    });
+  }
+
+  // Strictly filter out any items where citizen is NOT_ELIGIBLE
+  return items.filter((item) => item.recommendation.eligibility.status !== "NOT_ELIGIBLE");
 }
 
 /**

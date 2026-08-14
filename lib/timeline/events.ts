@@ -57,12 +57,18 @@ export function deriveLifeEvents(
   // -------------------------------------------------------------------------
   // 1. 18th Birthday Milestone (17yo countdown or 18yo today)
   // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // 1. 18th Birthday Milestone (17yo countdown or 18yo today)
+  // -------------------------------------------------------------------------
+  const allRecords = KnowledgeRepository.getAllKnowledgeRecords();
+  const voterRecord = allRecords.find((r) => r.id === "eci-voter-form6-service" || r.title.toLowerCase().includes("voter")) || allRecords[0];
+  const licenceRecord = allRecords.find((r) => r.id === "morth-learners-licence" || r.title.toLowerCase().includes("licence") || r.title.toLowerCase().includes("driving")) || allRecords[1];
+
+  const voterActionUrl = voterRecord ? `/explore/${voterRecord.id}` : "/explore?query=voter";
+
   if (age.years === 17) {
     const isToday18 = age.daysUntilBirthday === 0;
     const daysUntil18 = age.daysUntilBirthday;
-
-    const voterRecord = KnowledgeRepository.getKnowledgeRecordById("nvsp-voter-portal");
-    const licenceRecord = KnowledgeRepository.getKnowledgeRecordById("sarathi-driving-licence");
 
     events.push({
       id: "event-18th-birthday",
@@ -78,7 +84,7 @@ export function deriveLifeEvents(
       triggerAgeYears: 18,
       urgency: daysUntil18 <= 30 ? "urgent" : "high",
       priority: "HIGH",
-      relatedKnowledgeIds: ["nvsp-voter-portal", "sarathi-driving-licence"],
+      relatedKnowledgeIds: [voterRecord?.id || "voter"].filter(Boolean),
       relatedRecords: [voterRecord, licenceRecord].filter(Boolean) as any[],
       ruleReasons: [
         `Date of birth: ${profile.dateOfBirth}`,
@@ -88,11 +94,10 @@ export function deriveLifeEvents(
       ],
       source: voterRecord?.source ? { name: voterRecord.source.name, url: voterRecord.source.url } : undefined,
       actionLabel: "Explore Voter Registration",
-      actionUrl: "/explore/nvsp-voter-portal",
+      actionUrl: voterActionUrl,
     });
   } else if (age.years === 18 && age.hasHadBirthdayThisYear && age.daysUntilBirthday === 365) {
     // Exactly turned 18 today!
-    const voterRecord = KnowledgeRepository.getKnowledgeRecordById("nvsp-voter-portal");
     events.push({
       id: "event-18th-birthday-today",
       title: "🎂 You Turned 18 Today!",
@@ -105,7 +110,7 @@ export function deriveLifeEvents(
       triggerAgeYears: 18,
       urgency: "urgent",
       priority: "HIGH",
-      relatedKnowledgeIds: ["nvsp-voter-portal", "sarathi-driving-licence"],
+      relatedKnowledgeIds: [voterRecord?.id || "voter"].filter(Boolean),
       relatedRecords: [voterRecord].filter(Boolean) as any[],
       ruleReasons: [
         `Date of birth: ${profile.dateOfBirth}`,
@@ -114,11 +119,10 @@ export function deriveLifeEvents(
       ],
       source: voterRecord?.source ? { name: voterRecord.source.name, url: voterRecord.source.url } : undefined,
       actionLabel: "Register to Vote Now",
-      actionUrl: "/explore/nvsp-voter-portal",
+      actionUrl: voterActionUrl,
     });
   } else if (age.years >= 18 && age.years < 25) {
     // Current adult 18-24
-    const voterRecord = KnowledgeRepository.getKnowledgeRecordById("nvsp-voter-portal");
     events.push({
       id: "event-adult-civic-rights",
       title: "Adult Civic Rights & Electoral Participation",
@@ -128,22 +132,22 @@ export function deriveLifeEvents(
       triggerAgeYears: 18,
       urgency: "medium",
       priority: "MEDIUM",
-      relatedKnowledgeIds: ["nvsp-voter-portal", "sarathi-driving-licence"],
+      relatedKnowledgeIds: [voterRecord?.id || "voter"].filter(Boolean),
       relatedRecords: [voterRecord].filter(Boolean) as any[],
       ruleReasons: [`Current age: ${age.years} years (Satisfies age >= 18)`],
       source: voterRecord?.source ? { name: voterRecord.source.name, url: voterRecord.source.url } : undefined,
       actionLabel: "Check Voter Portal",
-      actionUrl: "/explore/nvsp-voter-portal",
+      actionUrl: voterActionUrl,
     });
   }
 
   // -------------------------------------------------------------------------
   // 2. Education Events (Class 10, Class 12, Higher Education)
   // -------------------------------------------------------------------------
-  if (profile.educationLevel === "secondary" || profile.educationLevel === "higher_secondary") {
-    const csssRecord = KnowledgeRepository.getKnowledgeRecordById("pm-usp-csss-scholarship");
-    const nmmssRecord = KnowledgeRepository.getKnowledgeRecordById("nmmss-merit-scholarship");
+  const csssRecord = allRecords.find((r) => r.id === "pm-usp-csss-scholarship" || r.title.toLowerCase().includes("scholarship") || r.category === "scholarship") || allRecords[0];
+  const scholarshipActionUrl = csssRecord ? `/explore/${csssRecord.id}` : "/explore?category=scholarship";
 
+  if (profile.educationLevel === "secondary" || profile.educationLevel === "higher_secondary") {
     events.push({
       id: "event-education-scholarships",
       title: "Higher Secondary & College Scholarship Window",
@@ -152,35 +156,37 @@ export function deriveLifeEvents(
       status: "CURRENT",
       urgency: "high",
       priority: "HIGH",
-      relatedKnowledgeIds: ["pm-usp-csss-scholarship", "nmmss-merit-scholarship"],
-      relatedRecords: [csssRecord, nmmssRecord].filter(Boolean) as any[],
+      relatedKnowledgeIds: [csssRecord?.id || "scholarship"].filter(Boolean),
+      relatedRecords: [csssRecord].filter(Boolean) as any[],
       ruleReasons: [
         `Profile Education Stage: ${profile.educationLevel}`,
         "Meets minimum 80th percentile requirement for Post-Matric CSSS",
       ],
       source: csssRecord?.source ? { name: csssRecord.source.name, url: csssRecord.source.url } : undefined,
       actionLabel: "View Scholarship Details",
-      actionUrl: "/explore/pm-usp-csss-scholarship",
+      actionUrl: scholarshipActionUrl,
     });
   } else if (profile.educationLevel === "undergraduate" || profile.educationLevel === "postgraduate") {
-    const internshipRecord = KnowledgeRepository.getKnowledgeRecordById("pm-internship-scheme");
+    const internshipRecord = allRecords.find((r) => r.id === "skill-india-digital-hub-apprenticeship" || r.title.toLowerCase().includes("skill") || r.title.toLowerCase().includes("internship")) || csssRecord;
+    const internshipActionUrl = internshipRecord ? `/explore/${internshipRecord.id}` : "/explore?category=education";
+
     events.push({
       id: "event-higher-education-career",
       title: "Higher Education & Skill Development Opportunities",
-      description: "PM Internship Scheme (₹5,000/month stipend + ₹6,000 one-time grant) and Skill India Digital hub access.",
+      description: "PM Internship & Apprenticeship training (stipend + National Apprenticeship Certificate) via Skill India Digital Hub.",
       category: "education",
       status: "CURRENT",
       urgency: "medium",
       priority: "MEDIUM",
-      relatedKnowledgeIds: ["pm-internship-scheme", "skill-india-digital-hub"],
+      relatedKnowledgeIds: [internshipRecord?.id || "internship"].filter(Boolean),
       relatedRecords: [internshipRecord].filter(Boolean) as any[],
       ruleReasons: [
         `Profile Education Stage: ${profile.educationLevel}`,
-        "Eligible for 12-month corporate internship in top 500 Indian companies",
+        "Eligible for corporate & industrial apprenticeship training in top establishments",
       ],
       source: internshipRecord?.source ? { name: internshipRecord.source.name, url: internshipRecord.source.url } : undefined,
       actionLabel: "Explore Internship",
-      actionUrl: "/explore/pm-internship-scheme",
+      actionUrl: internshipActionUrl,
     });
   }
 
@@ -188,7 +194,9 @@ export function deriveLifeEvents(
   // 3. Career & Employment Events
   // -------------------------------------------------------------------------
   if (profile.employmentStatus === "unemployed" || profile.employmentStatus === "student") {
-    const ncsRecord = KnowledgeRepository.getKnowledgeRecordById("ncs-job-portal");
+    const ncsRecord = allRecords.find((r) => r.id === "national-career-service" || r.title.toLowerCase().includes("career") || r.title.toLowerCase().includes("job")) || allRecords[0];
+    const ncsActionUrl = ncsRecord ? `/explore/${ncsRecord.id}` : "/explore?category=services";
+
     events.push({
       id: "event-ncs-job-registration",
       title: "National Career Service (NCS) Job Portal Registration",
@@ -197,7 +205,7 @@ export function deriveLifeEvents(
       status: "CURRENT",
       urgency: "medium",
       priority: "MEDIUM",
-      relatedKnowledgeIds: ["ncs-job-portal"],
+      relatedKnowledgeIds: [ncsRecord?.id || "ncs"].filter(Boolean),
       relatedRecords: [ncsRecord].filter(Boolean) as any[],
       ruleReasons: [
         `Employment Status: ${profile.employmentStatus}`,
@@ -205,18 +213,19 @@ export function deriveLifeEvents(
       ],
       source: ncsRecord?.source ? { name: ncsRecord.source.name, url: ncsRecord.source.url } : undefined,
       actionLabel: "Open NCS Portal",
-      actionUrl: "/explore/ncs-job-portal",
+      actionUrl: ncsActionUrl,
     });
   }
 
   // -------------------------------------------------------------------------
   // 4. Senior Citizen Events (Age 60+, 65+)
   // -------------------------------------------------------------------------
-  if (age.years >= 60) {
-    const ignoapsRecord = KnowledgeRepository.getKnowledgeRecordById("ignoaps-pension-scheme");
-    const isIncomeMissing = profile.annualIncomeInr === undefined;
+  const ignoapsRecord = allRecords.find((r) => r.id === "ignaps-senior-pension" || r.title.toLowerCase().includes("pension")) || allRecords[0];
+  const ignoapsActionUrl = ignoapsRecord ? `/explore/${ignoapsRecord.id}` : "/explore?category=services";
 
-    // Run core eligibility engine
+  if (age.years >= 60) {
+    const isIncomeMissing = profile.annualIncomeInr === undefined || profile.annualIncomeInr === null;
+
     let eligStatus: LifeEventState = "CURRENT";
     let missingFieldsList: string[] = [];
 
@@ -240,7 +249,7 @@ export function deriveLifeEvents(
       triggerAgeYears: 60,
       urgency: "high",
       priority: "HIGH",
-      relatedKnowledgeIds: ["ignoaps-pension-scheme"],
+      relatedKnowledgeIds: [ignoapsRecord?.id || "pension"].filter(Boolean),
       relatedRecords: [ignoapsRecord].filter(Boolean) as any[],
       ruleReasons: [
         `Current age: ${age.years} years (Satisfies age >= 60 requirement)`,
@@ -249,7 +258,7 @@ export function deriveLifeEvents(
       missingFields: missingFieldsList,
       source: ignoapsRecord?.source ? { name: ignoapsRecord.source.name, url: ignoapsRecord.source.url } : undefined,
       actionLabel: isIncomeMissing ? "Complete Profile Income" : "View Pension Details",
-      actionUrl: isIncomeMissing ? "/profile" : "/explore/ignoaps-pension-scheme",
+      actionUrl: isIncomeMissing ? "/profile" : ignoapsActionUrl,
     });
   } else if (age.years >= 55 && age.years < 60) {
     const daysUntil60 = (60 - age.years) * 365 - age.daysUntilBirthday;
@@ -264,10 +273,10 @@ export function deriveLifeEvents(
       triggerAgeYears: 60,
       urgency: "medium",
       priority: "LOW",
-      relatedKnowledgeIds: ["ignoaps-pension-scheme"],
+      relatedKnowledgeIds: [ignoapsRecord?.id || "pension"].filter(Boolean),
       ruleReasons: [`Current age: ${age.years} years (Transitioning to senior milestone 60)`],
       actionLabel: "Learn About Senior Schemes",
-      actionUrl: "/explore?category=pension",
+      actionUrl: "/explore?category=services",
     });
   }
 

@@ -35,12 +35,19 @@ export interface TranslationMap {
   // Navigation
   "nav.home": string;
   "nav.explore": string;
+  "nav.education": string;
+  "nav.rights": string;
   "nav.timeline": string;
   "nav.assistant": string;
   "nav.profile": string;
   "nav.section": string;
+  "nav.lifestyle": string;
+  "nav.lifestyle.desc": string;
+  "common.upcoming": string;
   "nav.home.desc": string;
   "nav.explore.desc": string;
+  "nav.education.desc": string;
+  "nav.rights.desc": string;
   "nav.timeline.desc": string;
   "nav.assistant.desc": string;
   "nav.profile.desc": string;

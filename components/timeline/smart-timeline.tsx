@@ -50,32 +50,13 @@ export function SmartTimeline({ initialProfile }: { initialProfile?: UserProfile
   return (
     <div className="space-y-8">
 
-      {/* ── Profile Context Banner ── */}
-      <div className="p-4 rounded-2xl bg-surface-secondary/70 border border-border-subtle flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2 text-body-sm font-bold text-foreground">
-          <User size={18} className="text-accent" />
-          <span>Active Profile Context:</span>
-        </div>
-
-        <div className="text-body-sm text-muted-foreground">
-          {currentProfile ? (
-            <span>{currentProfile.name} · {currentProfile.location.stateName || "Unknown state"}</span>
-          ) : (
-            <span>Complete your profile to view personalized timeline milestones.</span>
-          )}
-        </div>
-      </div>
 
       {/* ── Hero Milestone Banner ── */}
       {hero && (
         <div className="relative overflow-hidden p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-accent/15 via-card to-accent-subtle/30 border border-accent/30 shadow-md space-y-4">
           <div className="flex items-center justify-between gap-3 flex-wrap">
-            <span className="badge badge-saffron font-bold text-caption uppercase tracking-wider flex items-center gap-1">
-              <Sparkles size={12} /> Your Next Civic Milestone
-            </span>
-
             {hero.daysUntil !== undefined && (
-              <span className="badge badge-accent font-mono font-bold text-caption">
+              <span className="badge badge-accent font-mono font-bold text-caption ml-auto">
                 {hero.isToday ? "🎂 TODAY!" : `${hero.daysUntil} days to go`}
               </span>
             )}
@@ -155,10 +136,6 @@ export function SmartTimeline({ initialProfile }: { initialProfile?: UserProfile
               LATER ({laterEvents.length})
             </button>
           </div>
-
-          <span className="text-caption text-muted-foreground font-semibold">
-            {currentProfile ? `${currentProfile.name} (${currentProfile.dateOfBirth})` : "No active profile"}
-          </span>
         </div>
 
         {/* Tab Content Display */}

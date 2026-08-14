@@ -12,6 +12,7 @@ import React from "react";
 import { cn } from "@/lib/utils/cn";
 import { LanguageSelector } from "@/components/civic/language-selector";
 import { NotificationCenter } from "@/components/notifications/notification-center";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { ProfileAvatar } from "@/components/civic/profile-avatar";
 import { Dropdown, DropdownItem } from "@/components/ui/dropdown";
 import { useAuth } from "@/components/auth/AuthContext";
@@ -44,7 +45,7 @@ export function Header({ title, subtitle, className }: HeaderProps) {
   return (
     <header
       className={cn(
-        "sticky top-0 z-30 bg-background/85 backdrop-blur-md border-b border-border-subtle px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between gap-4 select-none",
+        "sticky top-0 z-50 bg-background/85 backdrop-blur-md border-b border-border-subtle px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between gap-4 select-none",
         className
       )}
     >
@@ -66,71 +67,66 @@ export function Header({ title, subtitle, className }: HeaderProps) {
             <img
               src="/assets/Vayam_Icon.png?v=2"
               alt="Vayam Icon Logo"
-              className="h-9 w-auto object-contain transition-transform group-hover:scale-105"
+              className="h-9 w-auto object-contain transition-transform group-hover:scale-105 dark:hidden"
             />
             <img
               src="/assets/Vayam_Text.png?v=2"
               alt="Vayam"
-              className="h-6 w-auto object-contain"
+              className="h-6 w-auto object-contain dark:hidden"
             />
-            <span className="badge badge-saffron hidden sm:inline-flex ml-1">Civic Intelligence</span>
-          </Link>
+            <img
+              src="/assets/Vayam_Dark_Icon.png?v=2"
+              alt="Vayam Icon Logo Dark"
+              className="h-9 w-auto object-contain transition-transform group-hover:scale-105 hidden dark:block"
+            />
+            <img
+              src="/assets/Vayam_Dark_Text.png?v=2"
+              alt="Vayam Dark"
+              className="h-6 w-auto object-contain hidden dark:block"
+            />
+            </Link>
         )}
       </div>
 
-      {/* Header Right: Controls */}
-      <div className="flex items-center gap-3">
+        {/* Header Right: Controls */}
+      <div className="flex items-center gap-6">
         {/* Multilingual Selector */}
         <LanguageSelector />
 
         {/* Notification Entry Point */}
-        <NotificationCenter />
+        {isAuthenticated && <NotificationCenter />}
+
+        {/* Theme Toggle */}
+        <ThemeToggle className="relative h-[38px] w-[38px] flex items-center justify-center rounded-xl border border-border-subtle bg-transparent hover:bg-surface-secondary text-muted-foreground hover:text-foreground transition-colors cursor-pointer shadow-none !p-0" />
 
         {/* Auth / Profile Area */}
         {isAuthenticated ? (
           <Dropdown
             align="right"
             trigger={
-              <div className="flex items-center gap-2 cursor-pointer p-1 rounded-xl hover:bg-surface-secondary transition-colors">
-                <ProfileAvatar name={displayName} size="sm" statusDot="active" />
-                <span className="text-body-sm font-semibold text-foreground hidden sm:inline-block">
-                  {displayName.split(" ")[0]}
-                </span>
+              <div className="flex items-center justify-center h-[38px] w-[38px] cursor-pointer p-1 rounded-xl hover:bg-surface-secondary transition-colors">
+                <ProfileAvatar name={displayName} size="sm" />
               </div>
             }
           >
             <div className="p-2 border-b border-border-subtle mb-1">
               <p className="text-body-sm font-bold text-foreground">{displayName}</p>
-              <p className="text-caption text-muted-foreground">
-                Supabase Account Verified
-              </p>
             </div>
 
-            <Link href="/profile">
-              <DropdownItem icon={<User size={14} />}>View Profile & Settings</DropdownItem>
-            </Link>
-            <Link href="/explore">
-              <DropdownItem icon={<Sparkles size={14} />}>Matched Opportunities</DropdownItem>
-            </Link>
-            <DropdownItem icon={<Shield size={14} />}>Privacy & Data Control</DropdownItem>
-            <DropdownItem icon={<HelpCircle size={14} />}>Civic Help & Support</DropdownItem>
-
-            <div className="border-t border-border-subtle mt-1 pt-1">
-              <DropdownItem
-                icon={<LogOut size={14} className="text-destructive" />}
-                onClick={() => signOut()}
-              >
-                <span className="text-destructive font-semibold">Sign Out</span>
-              </DropdownItem>
-            </div>
+            <DropdownItem
+              icon={<LogOut size={14} className="text-destructive" />}
+              onClick={() => signOut()}
+            >
+              <span className="text-destructive font-semibold">Sign Out</span>
+            </DropdownItem>
           </Dropdown>
         ) : (
           <button
             onClick={() => setAuthModalOpen(true)}
-            className="btn btn-primary btn-sm font-bold gap-2 rounded-xl shadow-xs cursor-pointer"
+            className="btn btn-primary font-bold gap-2 rounded-xl shadow-xs cursor-pointer h-[38px] px-4"
           >
             <UserCheck size={16} />
-            <span>Sign In</span>
+            <span className="pt-[2px]">Sign In</span>
           </button>
         )}
       </div>

@@ -29,7 +29,7 @@ export function useUserProfile() {
         ...nextProfile,
         updatedAt: new Date().toISOString(),
       };
-      await updateProfile(updatedProfile);
+      return await updateProfile(updatedProfile);
     },
     [updateProfile]
   );

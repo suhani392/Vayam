@@ -86,17 +86,13 @@ export function AuthModal() {
 
         {/* Header Branding */}
         <div className="text-center space-y-2 pt-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 border border-accent/20 text-accent font-bold text-caption uppercase tracking-wider">
-            <Sparkles size={13} />
-            <span>Vayam Civic Authentication</span>
-          </div>
           <h2 className="text-h2 font-extrabold text-foreground tracking-tight">
             {mode === "signin" ? "Welcome Back to Vayam" : "Create your Citizen Account"}
           </h2>
           <p className="text-caption text-muted-foreground max-w-xs mx-auto">
             {mode === "signin"
-              ? "Sign in with Supabase to access your personalized civic timeline, schemes, and rights."
-              : "Register using Supabase Auth to connect your profile with verified Indian government intelligence."}
+              ? "Sign in to access your personalized civic timeline, schemes, and rights."
+              : "Register to connect your profile with verified Indian government intelligence."}
           </p>
         </div>
 
@@ -109,13 +105,13 @@ export function AuthModal() {
               setErrorMsg(null);
             }}
             className={cn(
-              "flex-1 py-2.5 rounded-xl font-bold text-body-sm transition-all text-center",
+              "flex-1 py-2 text-body-sm font-bold rounded-xl transition-all flex items-center justify-center",
               mode === "signin"
-                ? "bg-card text-foreground shadow-xs border border-border-subtle"
-                : "text-muted-foreground hover:text-foreground"
+                ? "bg-card text-foreground shadow-sm ring-1 ring-border-subtle"
+                : "text-muted-foreground hover:text-foreground hover:bg-surface-secondary/50"
             )}
           >
-            Sign In
+            <span className="pt-[4px]">Sign In</span>
           </button>
           <button
             type="button"
@@ -124,13 +120,13 @@ export function AuthModal() {
               setErrorMsg(null);
             }}
             className={cn(
-              "flex-1 py-2.5 rounded-xl font-bold text-body-sm transition-all text-center",
+              "flex-1 py-2 text-body-sm font-bold rounded-xl transition-all flex items-center justify-center",
               mode === "signup"
-                ? "bg-card text-foreground shadow-xs border border-border-subtle"
-                : "text-muted-foreground hover:text-foreground"
+                ? "bg-card text-foreground shadow-sm ring-1 ring-border-subtle"
+                : "text-muted-foreground hover:text-foreground hover:bg-surface-secondary/50"
             )}
           >
-            Create Account
+            <span className="pt-[4px]">Create Account</span>
           </button>
         </div>
 
@@ -153,7 +149,7 @@ export function AuthModal() {
                 type="text"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                placeholder="e.g. Suhani Sharma"
+                placeholder="Citizen Name"
                 required
                 className="w-full px-4 py-3 rounded-2xl bg-surface-secondary/60 border border-border-subtle focus:border-accent focus:ring-2 focus:ring-accent/20 outline-none text-body-sm text-foreground placeholder:text-muted-foreground transition-all"
               />
@@ -183,7 +179,7 @@ export function AuthModal() {
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
+                placeholder="citizen@123"
                 required
                 className="w-full px-4 py-3 pr-11 rounded-2xl bg-surface-secondary/60 border border-border-subtle focus:border-accent focus:ring-2 focus:ring-accent/20 outline-none text-body-sm text-foreground placeholder:text-muted-foreground transition-all"
               />
@@ -204,17 +200,20 @@ export function AuthModal() {
             className="w-full py-3.5 px-6 rounded-2xl bg-accent text-accent-foreground font-bold text-body-sm flex items-center justify-center gap-2 shadow-md hover:bg-accent/90 disabled:opacity-50 transition-all mt-2 cursor-pointer"
           >
             {submitting ? (
-              <span>Authenticating...</span>
+              <span className="flex items-center justify-center gap-2 pt-[4px]">
+                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Authenticating...
+              </span>
             ) : mode === "signin" ? (
-              <>
+              <span className="flex items-center gap-2 pt-[4px]">
                 <span>Sign In to Vayam</span>
                 <ArrowRight size={16} />
-              </>
+              </span>
             ) : (
-              <>
+              <span className="flex items-center gap-2 pt-[4px]">
                 <span>Complete Registration</span>
                 <CheckCircle2 size={16} />
-              </>
+              </span>
             )}
           </button>
         </form>

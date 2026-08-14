@@ -97,7 +97,7 @@ export function getProfileHealthInsights(profile: Partial<UserProfile> | UserPro
     });
   }
 
-  if (!profile.annualIncomeInr) {
+  if (profile.annualIncomeInr === undefined || profile.annualIncomeInr === null) {
     insights.push({
       title: "Missing income information",
       description: "Income helps determine eligibility for scholarships, welfare and pension schemes.",

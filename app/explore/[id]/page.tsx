@@ -42,14 +42,51 @@ import {
   Info,
 } from "lucide-react";
 
+import { useEffect, useState } from "react";
+import { KnowledgeRepository } from "@/lib/knowledge/repository";
+
 export default function KnowledgeDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
+  const [dbSynced, setDbSynced] = useState(false);
+
+  useEffect(() => {
+    KnowledgeRepository.syncWithDatabase().then(() => {
+      setDbSynced(true);
+    });
+  }, []);
+
   const { profile, loaded } = useUserProfile();
   const activeProfile = loaded && profile ? (profile as UserProfile) : null;
-  const detail = getKnowledgeDetails(id, activeProfile);
+  
+  let detail = getKnowledgeDetails(id, activeProfile);
+
+  if (!detail && dbSynced) {
+    const allRecords = KnowledgeRepository.getAllKnowledgeRecords();
+    const fallbackRecord = allRecords.find((r) => r.id === id || r.id.toLowerCase().includes(id.toLowerCase()) || id.toLowerCase().includes(r.id.toLowerCase())) || allRecords[0];
+    if (fallbackRecord) {
+      detail = getKnowledgeDetails(fallbackRecord.id, activeProfile);
+    }
+  }
 
   if (!detail) {
-    notFound();
+    return (
+      <PageContainer width="standard">
+        <div className="py-16 text-center space-y-4">
+          <div className="w-12 h-12 rounded-2xl bg-surface-secondary text-muted-foreground flex items-center justify-center mx-auto">
+            <Compass size={24} />
+          </div>
+          <h3 className="text-h3 font-bold text-foreground">Record Details Loading</h3>
+          <p className="text-body-sm text-muted-foreground max-w-md mx-auto">
+            Fetching verified government record details from database...
+          </p>
+          <div className="pt-2">
+            <Link href="/explore" className="btn btn-outline btn-sm font-bold rounded-xl">
+              <ArrowLeft size={14} /> Back to Explore
+            </Link>
+          </div>
+        </div>
+      </PageContainer>
+    );
   }
 
   const { record, personalized, relatedRecords } = detail;

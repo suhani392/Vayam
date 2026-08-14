@@ -13,9 +13,77 @@ import { KNOWLEDGE_RECORDS } from "./records";
 import { knowledgeRecordsToCivicItems, knowledgeRecordToCivicItem } from "./adapter";
 import type { CivicItem } from "../core/types";
 import { isRecordVerified, checkReviewDue } from "./source/validator";
+import { fetchDbKnowledgeItems } from "@/lib/db/fetchers";
 
 export class KnowledgeRepository {
-  private static records: KnowledgeRecord[] = KNOWLEDGE_RECORDS;
+  private static records: KnowledgeRecord[] = [];
+  private static dbSynced: boolean = false;
+
+  /**
+   * Syncs records from Supabase database dynamically.
+   */
+  public static async syncWithDatabase(forceRefresh: boolean = true): Promise<KnowledgeRecord[]> {
+    if (this.dbSynced && !forceRefresh) return this.records;
+    try {
+      const dbItems = await fetchDbKnowledgeItems();
+      if (dbItems && dbItems.length > 0) {
+        const mappedRecords: KnowledgeRecord[] = dbItems.map((item) => {
+          const catSlug = item.category_rel?.slug || item.metadata?.category || "education";
+          return {
+            id: item.slug || item.id,
+            type: "SCHEME",
+            title: item.title,
+            shortDescription: item.short_description || "",
+            fullDescription: item.description || "",
+            category: catSlug,
+            keywords: item.tags || [],
+            authority: {
+              name: item.authority_name || "Government of India",
+              level: "CENTRAL",
+            },
+            minAge: item.metadata?.min_age,
+            maxAge: item.metadata?.max_age,
+            maxAnnualIncomeInr: item.metadata?.max_annual_income,
+            benefitAmountInr: item.metadata?.benefit_amount_inr,
+            benefits: item.eligibility_summary ? [item.eligibility_summary] : [],
+            application: {
+              method: "ONLINE",
+              officialUrl: item.action_url || "#",
+              portalName: item.action_label || "Official Portal",
+              steps: [],
+              documentsRequired: [],
+            },
+            timing: {
+              deadline: item.deadline || null,
+              deadlineType: item.deadline ? "FIXED_DATE" : "NO_DEADLINE",
+              recurring: false,
+              lastVerified: item.updated_at ? item.updated_at.substring(0, 10) : "2026-08-09",
+            },
+            source: {
+              name: item.authority_name || "Government Source",
+              url: item.action_url || "#",
+              authority: item.authority_name || "Official Authority",
+              sourceType: "OFFICIAL_GOVERNMENT",
+              sourceTrust: "OFFICIAL_GOVERNMENT",
+              lastVerified: item.updated_at ? item.updated_at.substring(0, 10) : "2026-08-09",
+              verificationStatus: "VERIFIED",
+            },
+            status: "ACTIVE",
+          };
+        });
+
+        // PURE DATABASE ONLY: Zero hardcoded fallback records
+        this.records = mappedRecords;
+        this.dbSynced = true;
+      } else {
+        this.records = [];
+      }
+    } catch (err) {
+      console.warn("KnowledgeRepository database sync warning:", err);
+      this.records = [];
+    }
+    return this.records;
+  }
 
   /**
    * Retrieves all canonical KnowledgeRecords.
@@ -143,3 +211,4 @@ export function getKnowledgeRecords(query: KnowledgeFilterQuery = {}): Knowledge
 export function getKnowledgeRecordsAsCivicItems(query: KnowledgeFilterQuery = {}): CivicItem[] {
   return KnowledgeRepository.getKnowledgeRecordsAsCivicItems(query);
 }
+

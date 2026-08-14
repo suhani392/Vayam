@@ -15,6 +15,8 @@ import {
   generateCivicNotifications,
   getReminderPreferences,
   saveReminderPreferences,
+  getReadNotificationIds,
+  saveReadNotificationIds,
   type CivicNotification,
   type ReminderPreferences,
 } from "@/lib/notifications";
@@ -43,22 +45,37 @@ export function NotificationCenter() {
   useEffect(() => {
     const activePrefs = getReminderPreferences();
     setPrefs(activePrefs);
+    const readIds = getReadNotificationIds();
     const notifs = generateCivicNotifications(loaded && profile ? (profile as UserProfile) : null, lang);
 
-    // Filter by preference
-    const filtered = notifs.filter((n) => {
-      if (!activePrefs.enabled) return false;
-      if (activePrefs.mode === "important_only") return n.priority === "HIGH" || n.priority === "MEDIUM";
-      return true;
-    });
+    // Filter by preference and map read state
+    const processed = notifs
+      .map((n) => ({ ...n, read: readIds.includes(n.id) }))
+      .filter((n) => {
+        if (!activePrefs.enabled) return false;
+        if (activePrefs.mode === "important_only") return n.priority === "HIGH" || n.priority === "MEDIUM";
+        return true;
+      });
 
-    setNotifications(filtered);
+    setNotifications(processed);
   }, [lang, loaded, profile]);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   const markAllRead = () => {
+    const allIds = notifications.map((n) => n.id);
+    const existing = getReadNotificationIds();
+    const merged = Array.from(new Set([...existing, ...allIds]));
+    saveReadNotificationIds(merged);
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+  };
+
+  const markItemRead = (id: string) => {
+    const existing = getReadNotificationIds();
+    if (!existing.includes(id)) {
+      saveReadNotificationIds([...existing, id]);
+    }
+    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
   };
 
   const handleToggleEnabled = () => {
@@ -76,11 +93,12 @@ export function NotificationCenter() {
   return (
     <Dropdown
       align="right"
+      closeOnClickInside={false}
       trigger={
         <button
           type="button"
           aria-label={t("header.notifications")}
-          className="relative p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-surface-secondary border border-border-subtle transition-colors cursor-pointer"
+          className="relative h-[38px] w-[38px] flex items-center justify-center rounded-xl text-muted-foreground hover:text-foreground hover:bg-surface-secondary border border-border-subtle transition-colors cursor-pointer"
         >
           <Bell size={18} />
           {unreadCount > 0 && (
@@ -88,8 +106,9 @@ export function NotificationCenter() {
           )}
         </button>
       }
+      className="w-80 sm:w-[400px] p-0"
     >
-      <div className="w-80 sm:w-96 p-3 space-y-3">
+      <div className="p-3 space-y-3">
         {/* Header bar */}
         <div className="flex items-center justify-between border-b border-border-subtle pb-2">
           <div className="flex items-center gap-2">
@@ -114,7 +133,7 @@ export function NotificationCenter() {
                 onClick={markAllRead}
                 className="text-[11px] font-bold text-accent hover:underline cursor-pointer"
               >
-                Mark all read
+                <span className="inline-block pt-[2px]">Mark all read</span>
               </button>
             )}
           </div>
@@ -132,7 +151,7 @@ export function NotificationCenter() {
                   prefs.enabled ? "bg-success text-success-foreground" : "bg-muted text-muted-foreground"
                 )}
               >
-                {prefs.enabled ? "ON" : "OFF"}
+                <span className="inline-block pt-[2px]">{prefs.enabled ? "ON" : "OFF"}</span>
               </button>
             </div>
 
@@ -147,7 +166,7 @@ export function NotificationCenter() {
                       : "border-border-subtle text-muted-foreground"
                   )}
                 >
-                  Important Only
+                  <span className="inline-block pt-[2px]">Important Only</span>
                 </button>
                 <button
                   onClick={() => handleToggleMode("all")}
@@ -158,7 +177,7 @@ export function NotificationCenter() {
                       : "border-border-subtle text-muted-foreground"
                   )}
                 >
-                  All Reminders
+                  <span className="inline-block pt-[2px]">All Reminders</span>
                 </button>
               </div>
             )}
@@ -176,6 +195,7 @@ export function NotificationCenter() {
               <Link
                 key={notif.id}
                 href={notif.targetUrl as any}
+                onClick={() => markItemRead(notif.id)}
                 className={cn(
                   "p-3 rounded-xl border flex items-start gap-3 transition-colors block text-left group",
                   notif.read ? "bg-card border-border-subtle opacity-70" : "bg-surface-secondary/80 border-accent/20 hover:border-accent/40"

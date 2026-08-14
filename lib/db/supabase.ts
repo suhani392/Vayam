@@ -71,6 +71,32 @@ export async function fetchDbProfile(userId: string): Promise<DbProfile | null> 
 }
 
 /**
+ * Fetch state ID by code
+ */
+export async function getStateIdByCode(code: string): Promise<string | null> {
+  if (!code) return null;
+  try {
+    const { data } = await supabase.from("states").select("id").eq("code", code.toUpperCase()).single();
+    return data?.id || null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Fetch state code by ID
+ */
+export async function getStateCodeById(id: string): Promise<string | null> {
+  if (!id) return null;
+  try {
+    const { data } = await supabase.from("states").select("code").eq("id", id).single();
+    return data?.code || null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Upsert profile in `profiles` table.
  */
 export async function upsertDbProfile(
@@ -85,6 +111,34 @@ export async function upsertDbProfile(
     const { data, error } = await supabase
       .from("profiles")
       .upsert(payload, { onConflict: "id" })
+      .select("*")
+      .single();
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+    return { success: true, data: data as DbProfile };
+  } catch (err: any) {
+    return { success: false, error: err.message || "Failed to update profile" };
+  }
+}
+
+/**
+ * Update profile in `profiles` table safely without triggering NOT NULL constraints of an UPSERT.
+ */
+export async function updateDbProfile(
+  profileData: Partial<DbProfile> & { id: string }
+): Promise<{ success: boolean; data?: DbProfile; error?: string }> {
+  try {
+    const payload = {
+      ...profileData,
+      updated_at: new Date().toISOString(),
+    };
+
+    const { data, error } = await supabase
+      .from("profiles")
+      .update(payload)
+      .eq("id", profileData.id)
       .select("*")
       .single();
 

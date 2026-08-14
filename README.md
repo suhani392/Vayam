@@ -307,21 +307,23 @@ Pensions
 
 ---
 
-# 🎓 Education
+# 🎓 Education Pathfinder (`/education`)
 
-The Education section helps users discover opportunities based on their educational profile.
+The **Education Pathfinder** helps citizens discover realistic educational and career pathways from their **CURRENT position** to their **DESIRED PROFESSION**.
 
-It can help users understand:
+Instead of displaying a simple list of degrees or generic advice, Vayam maps out structured career journeys:
 
-* What they can do after 10th
-* What they can do after 12th
-* Relevant examinations
-* Eligibility requirements
-* Scholarships
-* Government education schemes
-* Higher education opportunities
+```text
+CURRENT POSITION → GOAL → POSSIBLE PATHWAYS → ELIGIBILITY → EXAMS → DEGREE → SKILLS → CAREER
+```
 
-Instead of simply presenting a list of schemes, Vayam aims to connect educational opportunities with the citizen's current stage.
+### Key Capabilities
+
+* **Profile-Prefilled Starting Point**: Automatically reads the citizen's profile (`educationLevel`, stream, state) as the starting point (e.g. `Class 12 · Science`) with full override support.
+* **Multiple Valid Pathways**: Presents multiple routes for a target profession (e.g. `Engineering Route (B.E./B.Tech)` vs `BCA + MCA Route` for Software Engineering) without claiming one route is universally superior.
+* **Structured Pathway Breakdown**: Detailed information on entry requirements, national & state entrance exams (JEE, NEET, CLAT, CA Foundation, NATA, CTET, GATE, etc.), degree qualifications, duration, key skills, alternative routes, and official source links.
+* **"What if I choose another path?" Interactive Comparison**: Side-by-side comparison table evaluating degree qualifications, duration, entrance exam stress, and skills across alternative paths.
+* **Government Opportunities Integration**: Directly links educational routes to verified government scholarships and education loan interest subsidy schemes (e.g., PM Vidya Lakshmi) evaluated via Vayam's eligibility engine.
 
 ---
 
@@ -342,27 +344,37 @@ Eligibility is evaluated based on the conditions defined for each individual pro
 
 ---
 
-# ⚖️ Rights
+# ⚖️ Know Your Rights (`/rights`)
 
-Government rights and legal information can be difficult for ordinary citizens to understand.
+The **Know Your Rights** capability helps ordinary citizens understand laws, rights, protections, and practical next steps in simple, accessible language.
 
-Vayam aims to simplify such information into easier language.
+Citizens can describe a real-life situation in plain language (e.g., *"My friend borrowed ₹20,000 from me and has not returned it"*) without needing to know complex legal terminology.
 
-The objective is:
+### Structured 9-Part Response Framework
+
+1. **What your situation may involve**: Summary & key legal considerations (e.g. Nature of contract, proof of loan transfer).
+2. **Relevant legal framework & Acts**: Indian Contract Act, Consumer Protection Act 2019, IT Act 2000, Model Tenancy Act, etc.
+3. **What the law generally says**: Plain-language explanation of citizen rights and statutory protections.
+4. **Applicable rights & protections**: Specific legal entitlements granted to the citizen.
+5. **Evidence to preserve**: Recommended evidence checklist (e.g., bank statements, transaction IDs, WhatsApp chats, bills).
+6. **Practical options & next steps**: Step-by-step resolution process (Demand letter → Conciliation → Legal notice → Portal grievance).
+7. **Where to seek official help**: Official helplines & legal services (NALSA 15100, National Consumer Helpline 1915, Cyber Crime 1930).
+8. **Official & credible legal sources**: Direct links to verified Government Gazette / Statutory documentation.
+9. **Legal Safety & Disclaimer**: Context status badge (`INFORMATION_AVAILABLE`, `REQUIRES_MORE_CONTEXT`, `PROFESSIONAL_HELP_RECOMMENDED`) and official civic disclaimer.
 
 ```text
-Complex Information
+Complex Situation Description
         ↓
-Simple Explanation
+Vayam Intent & Situation Matcher
         ↓
-Official Source
+Plain-Language Law & Rights Explanation
         ↓
-Understand
+Evidence & Practical Options Checklist
         ↓
-Act
+Official Helplines & Verified Gazette Sources
 ```
 
-Vayam does not replace legal professionals or official authorities.
+Vayam provides general legal awareness and information; it does not replace legal advocates, courts, police, or government authorities.
 
 ---
 
@@ -629,7 +641,10 @@ Knowledge
  ├── Categories
  ├── Schemes
  ├── Services
- ├── Rights
+ ├── Rights & Legal Topics
+ ├── Legal Situations & Actions
+ ├── Education Careers
+ ├── Education Pathways
  ├── Eligibility Rules
  ├── Milestones
  └── Sources
